@@ -1,0 +1,68 @@
+{
+  "total": {
+    "gt": 35,
+    "found": 23,
+    "pred": 26,
+    "tp": 26
+  },
+  "recall": 0.6571428571428571,
+  "precision": 1.0,
+  "per_problem": [
+    {
+      "name": "cafe_01",
+      "gt": 6,
+      "found": 3,
+      "pred": 3,
+      "tp": 3,
+      "missed": [
+        "안경 사라짐",
+        "태블릿 화면 막대그래프 → 원그래프",
+        "컵 로고"
+      ]
+    },
+    {
+      "name": "plaza_01",
+      "gt": 8,
+      "found": 8,
+      "pred": 11,
+      "tp": 11,
+      "missed": []
+    },
+    {
+      "name": "subway_01",
+      "gt": 7,
+      "found": 3,
+      "pred": 4,
+      "tp": 4,
+      "missed": [
+        "전광판 급행 → 일반",
+        "은색 열차 → 빨간 열차",
+        "무선 이어폰 → 유선 이어폰",
+        "검은 구두 → 흰 운동화"
+      ]
+    },
+    {
+      "name": "camping_01",
+      "gt": 7,
+      "found": 5,
+      "pred": 4,
+      "tp": 4,
+      "missed": [
+        "초승달 → 보름달",
+        "마시멜로 → 소시지"
+      ]
+    },
+    {
+      "name": "bookstore_01",
+      "gt": 7,
+      "found": 4,
+      "pred": 4,
+      "tp": 4,
+      "missed": [
+        "Open → Welcome 팻말",
+        "베레모 → 중절모",
+        "시계 바늘"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+# 환경
+.venv/
+__pycache__/
+.ipynb_checkpoints/
+
+# 데이터셋 / 학습 산출물 (용량 큼 — 스크립트로 재생성 가능)
+data/
+runs/
+*.pt
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 노트북 실행 부산물
+notebooks/crops/
+notebooks/*.jpg
+build/
+notebooks/bus_crops/
+notebooks/predicted1.jpg
+data/stamp_robust/
+datasets/
+.ultralytics/
+weights/
+
+# 틀린그림찾기: 원본 자료는 용량이 커서 제외 (구글 드라이브에 원본 보관)
+spotdiff/data/

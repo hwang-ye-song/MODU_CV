@@ -1,0 +1,18 @@
+{
+  "frame_size": [1280, 720],
+  "person_overlap": 0.25,
+  "item_overlap": 0.5,
+  "rules": {
+    "window_sec": 7200,
+    "min_ratio": 0.10,
+    "grace_sec": 900,
+    "person_on_sec": 3,
+    "person_off_sec": 30,
+    "item_on_sec": 5,
+    "item_off_sec": 60
+  },
+  "seats": [
+    {"id": "S1", "polygon": [[100, 300], [500, 300], [500, 700], [100, 700]]},
+    {"id": "S2", "polygon": [[600, 300], [1000, 300], [1000, 700], [600, 700]]}
+  ]
+}

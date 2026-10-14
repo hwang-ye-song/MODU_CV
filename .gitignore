@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+.ipynb_checkpoints/
+.pytest_cache/
+.claude/
+build/
+*.pt
+*.mp4
+*.tar
+logs/
+seats.json

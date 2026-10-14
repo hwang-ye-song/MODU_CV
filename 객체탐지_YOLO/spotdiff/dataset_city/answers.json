@@ -1,0 +1,427 @@
+{
+ "city_01": {
+  "source": "000000000064.jpg",
+  "size": [
+   480,
+   640
+  ],
+  "differences": [
+   {
+    "no": 1,
+    "kind": "remove",
+    "class": "truck",
+    "box_a": [
+     52,
+     353,
+     176,
+     412
+    ],
+    "box_b": null
+   },
+   {
+    "no": 2,
+    "kind": "remove",
+    "class": "stop sign",
+    "box_a": [
+     115,
+     226,
+     152,
+     301
+    ],
+    "box_b": null
+   },
+   {
+    "no": 3,
+    "kind": "copy",
+    "class": "person",
+    "box_a": null,
+    "box_b": [
+     277,
+     419,
+     366,
+     544
+    ]
+   }
+  ]
+ },
+ "city_02": {
+  "source": "000000000094.jpg",
+  "size": [
+   640,
+   427
+  ],
+  "differences": [
+   {
+    "no": 1,
+    "kind": "move",
+    "class": "truck",
+    "box_a": [
+     542,
+     263,
+     624,
+     356
+    ],
+    "box_b": [
+     452,
+     263,
+     534,
+     356
+    ]
+   },
+   {
+    "no": 2,
+    "kind": "move",
+    "class": "car",
+    "box_a": [
+     356,
+     275,
+     398,
+     313
+    ],
+    "box_b": [
+     262,
+     275,
+     304,
+     313
+    ]
+   },
+   {
+    "no": 3,
+    "kind": "copy",
+    "class": "person",
+    "box_a": null,
+    "box_b": [
+     45,
+     282,
+     84,
+     356
+    ]
+   }
+  ]
+ },
+ "city_03": {
+  "source": "000000000257.jpg",
+  "size": [
+   640,
+   480
+  ],
+  "differences": [
+   {
+    "no": 1,
+    "kind": "move",
+    "class": "person",
+    "box_a": [
+     287,
+     337,
+     320,
+     414
+    ],
+    "box_b": [
+     18,
+     337,
+     51,
+     414
+    ]
+   },
+   {
+    "no": 2,
+    "kind": "remove",
+    "class": "person",
+    "box_a": [
+     264,
+     330,
+     280,
+     402
+    ],
+    "box_b": null
+   },
+   {
+    "no": 3,
+    "kind": "remove",
+    "class": "person",
+    "box_a": [
+     77,
+     326,
+     97,
+     374
+    ],
+    "box_b": null
+   }
+  ]
+ },
+ "city_04": {
+  "source": "000000000260.jpg",
+  "size": [
+   500,
+   333
+  ],
+  "differences": [
+   {
+    "no": 1,
+    "kind": "remove",
+    "class": "bus",
+    "box_a": [
+     2,
+     93,
+     68,
+     250
+    ],
+    "box_b": null
+   },
+   {
+    "no": 2,
+    "kind": "remove",
+    "class": "person",
+    "box_a": [
+     17,
+     142,
+     40,
+     169
+    ],
+    "box_b": null
+   },
+   {
+    "no": 3,
+    "kind": "move",
+    "class": "person",
+    "box_a": [
+     261,
+     139,
+     312,
+     308
+    ],
+    "box_b": [
+     82,
+     139,
+     133,
+     308
+    ]
+   }
+  ]
+ },
+ "city_05": {
+  "source": "000000000359.jpg",
+  "size": [
+   500,
+   332
+  ],
+  "differences": [
+   {
+    "no": 1,
+    "kind": "remove",
+    "class": "traffic light",
+    "box_a": [
+     243,
+     99,
+     294,
+     121
+    ],
+    "box_b": null
+   },
+   {
+    "no": 2,
+    "kind": "remove",
+    "class": "traffic light",
+    "box_a": [
+     153,
+     100,
+     218,
+     134
+    ],
+    "box_b": null
+   },
+   {
+    "no": 3,
+    "kind": "copy",
+    "class": "person",
+    "box_a": null,
+    "box_b": [
+     405,
+     298,
+     453,
+     327
+    ]
+   }
+  ]
+ },
+ "city_06": {
+  "source": "000000000471.jpg",
+  "size": [
+   640,
+   427
+  ],
+  "differences": [
+   {
+    "no": 1,
+    "kind": "copy",
+    "class": "person",
+    "box_a": null,
+    "box_b": [
+     29,
+     155,
+     50,
+     199
+    ]
+   },
+   {
+    "no": 2,
+    "kind": "copy",
+    "class": "person",
+    "box_a": null,
+    "box_b": [
+     69,
+     155,
+     82,
+     199
+    ]
+   },
+   {
+    "no": 3,
+    "kind": "copy",
+    "class": "person",
+    "box_a": null,
+    "box_b": [
+     589,
+     155,
+     610,
+     199
+    ]
+   }
+  ]
+ },
+ "city_07": {
+  "source": "000000000532.jpg",
+  "size": [
+   640,
+   480
+  ],
+  "differences": [
+   {
+    "no": 1,
+    "kind": "remove",
+    "class": "person",
+    "box_a": [
+     124,
+     253,
+     169,
+     367
+    ],
+    "box_b": null
+   },
+   {
+    "no": 2,
+    "kind": "remove",
+    "class": "person",
+    "box_a": [
+     269,
+     234,
+     313,
+     390
+    ],
+    "box_b": null
+   },
+   {
+    "no": 3,
+    "kind": "copy",
+    "class": "truck",
+    "box_a": null,
+    "box_b": [
+     569,
+     216,
+     599,
+     230
+    ]
+   }
+  ]
+ },
+ "city_08": {
+  "source": "000000000629.jpg",
+  "size": [
+   640,
+   427
+  ],
+  "differences": [
+   {
+    "no": 1,
+    "kind": "copy",
+    "class": "person",
+    "box_a": null,
+    "box_b": [
+     215,
+     289,
+     308,
+     414
+    ]
+   },
+   {
+    "no": 2,
+    "kind": "copy",
+    "class": "person",
+    "box_a": null,
+    "box_b": [
+     85,
+     289,
+     154,
+     414
+    ]
+   },
+   {
+    "no": 3,
+    "kind": "copy",
+    "class": "person",
+    "box_a": null,
+    "box_b": [
+     578,
+     289,
+     633,
+     414
+    ]
+   }
+  ]
+ },
+ "city_09": {
+  "source": "000000000641.jpg",
+  "size": [
+   640,
+   428
+  ],
+  "differences": [
+   {
+    "no": 1,
+    "kind": "remove",
+    "class": "bicycle",
+    "box_a": [
+     115,
+     237,
+     141,
+     296
+    ],
+    "box_b": null
+   },
+   {
+    "no": 2,
+    "kind": "copy",
+    "class": "person",
+    "box_a": null,
+    "box_b": [
+     73,
+     225,
+     87,
+     251
+    ]
+   },
+   {
+    "no": 3,
+    "kind": "copy",
+    "class": "person",
+    "box_a": null,
+    "box_b": [
+     587,
+     209,
+     602,
+     231
+    ]
+   }
+  ]
+ }
+}
