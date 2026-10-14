@@ -1,6 +1,0 @@
-# PyTorch는 GPU에 맞는 버전을 먼저 설치하세요 (RTX 50 시리즈는 cu128 필요)
-#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
-torch
-torchvision
-ultralytics
-pytest
