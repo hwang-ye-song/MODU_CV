@@ -6,7 +6,7 @@
 
 글(프롬프트)로 그림을 만들고(Text-to-Image), 사진의 일부만 다시 그려(Inpainting) **정상 제품 사진에 불량을 넣을 수 있는지** 확인한 실습입니다. 원본 코드를 그대로 돌린 뒤, 결과가 왜 그렇게 나왔는지 개인 실험 4개로 확인했습니다.
 
-실행 환경: Google Colab Pro, L4 GPU, Python 3.13 · 자세한 실행 기록은 `StableDiffusion_직접해보기.ipynb`
+실행 환경: Google Colab Pro, L4 GPU, Python 3.13 · 자세한 실행 기록은 `StableDiffusion_실습.ipynb`
 
 ### 한눈에 보기
 
