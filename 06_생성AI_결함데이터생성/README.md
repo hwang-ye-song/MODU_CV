@@ -7,7 +7,7 @@
 | 방법 | 글로 그림 만들기(Text-to-Image), 마스크 부분만 다시 그리기(Inpainting) | 정상 사진 1장 + 결함 문장 → 결함 단어의 주의(attention)를 키워 결함을 그려 넣음 |
 | 대상 | 우주인, 회색 판, 해변 사진 | 탁자(바램), 헤이즐넛(균열), PCB(균열) |
 | 개인 실험 | 스텝 수, guidance, 시드 20장, 마스크 밖 변화 | PCB에 맞는 결함 문장, 6주차 PaDiM으로 채점 |
-| 자세히 | [8-1 README](../06_생성AI_StableDiffusion/README.md) | [8-2 README](README.md) |
+| 자세히 | [8-1 README](8-1_StableDiffusion/README.md) | [8-2 README](8-2_결함데이터생성/README.md) |
 
 ## 실행 흐름
 
@@ -43,8 +43,8 @@ flowchart LR
 - 8-1: guidance 20은 색이 깨진 그림인데 **CLIP 점수는 가장 높았다**(35.45). CLIP 점수는 글의 내용이 들어 있는지만 보고, 잘 그렸는지는 보지 않는다.
 - 8-2: 6주차 PaDiM(테스트 AUROC 0.9824)으로 생성 이미지를 채점하니 **8장 모두 불량**이었다. 결함 자리뿐 아니라 생성하면서 다시 그려진 USB 커넥터에도 반응했다. PaDiM은 "정상과 다른 곳"을 찾을 뿐, 의도한 결함인지 생성 흔적인지는 구분하지 못한다.
 
-![guidance](../06_생성AI_StableDiffusion/results/03_guidance.png)
-![PaDiM 채점](report/images/10_개인실험_PaDiM_판정.png)
+![guidance](8-1_StableDiffusion/results/03_guidance.png)
+![PaDiM 채점](8-2_결함데이터생성/report/images/10_개인실험_PaDiM_판정.png)
 
 **3. 사진이 바뀌는 원인은 두 가지다. 압축은 조금, 다시 그리기는 크게 바꾼다.**
 
@@ -58,7 +58,7 @@ flowchart LR
 - **다시 그리기**: 8-2(AnomalyAny)는 마스크 없이 노이즈를 걷어 내면서 기판 전체를 다시 그린다. 그래서 결함 자리 말고도 커넥터, 인쇄 글자, 배선이 바뀌었고, PaDiM 점수를 크게 올린 건 이쪽이다. 8-1의 Inpainting은 마스크 안만 다시 그려서, 마스크 밖에는 압축 흔적만 남았다.
 - 둘 다 **마스크로 결함 자리만 바꾸고, 나머지는 원본 픽셀로 되돌리면** 줄일 수 있다.
 
-![마스크 밖 변화](../06_생성AI_StableDiffusion/results/07_mask_outside.png)
+![마스크 밖 변화](8-1_StableDiffusion/results/07_mask_outside.png)
 
 **4. SlowPaper에서 읽은 CLIP이 두 실습 모두의 부품이다.** CLIP은 Stable Diffusion이 문장을 숫자로 바꾸는 텍스트 인코더이고(8-1·8-2), 8-1에서는 그림을 채점하는 데도 썼다. "누가 무엇을 탄다" 같은 관계를 약하게 담아서 말이 절반만 나왔고(8-1), 결함 단어가 그림의 어디에 반영되는지는 주의 맵으로 확인할 수 있었다(8-2).
 
@@ -76,7 +76,7 @@ flowchart LR
 
 ## 개인 회고
 
-각 실습의 전체 회고는 [8-1 README](../06_생성AI_StableDiffusion/README.md)와 [8-2 README](README.md)에 있습니다.
+각 실습의 전체 회고는 [8-1 README](8-1_StableDiffusion/README.md)와 [8-2 README](8-2_결함데이터생성/README.md)에 있습니다.
 
 ### 8-1에서 알게 된 것
 

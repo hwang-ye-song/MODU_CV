@@ -9,10 +9,9 @@
 | 3 | [03_특강_VisionAI_환경설정](03_특강_VisionAI_환경설정) | 2026-09-22 | Vision AI 특강: 환경 설정과 CLI 연결(Hugging Face CLI, Colab GPU) | [-9-22](https://github.com/hwang-ye-song/-9-22) |
 | 4 | [04_EfficientDet_객체탐지](04_EfficientDet_객체탐지) | 2026-10-02 ~ 10-04 | EfficientDet 실습 코드 정리와 코드 리뷰 | [EfficientDet-_CV](https://github.com/hwang-ye-song/EfficientDet-_CV) |
 | 5 | [05_이상탐지_PaDiM](05_이상탐지_PaDiM) | 2026-10-12 ~ 10-13 | 제조업 실시간 이상 탐지 (VisA, PaDiM·AutoEncoder·One-Class SVM, Gradio) | [ch_6](https://github.com/hwang-ye-song/ch_6) |
-| 6 | [06_생성AI_StableDiffusion](06_생성AI_StableDiffusion) | 2026-10-13 ~ | Stable Diffusion 실습 | - |
-| 7 | [07_생성AI_결함데이터생성](07_생성AI_결함데이터생성) | 2026-10-13 ~ | 생성형 AI로 제조 결함 데이터 생성 | - |
-| 8 | [08_프로젝트_오픈스페이스_알박기감지](08_프로젝트_오픈스페이스_알박기감지) | 2026-10-13 ~ | 한양대 ERICA 융합교육관 스터디룸 알박기 감지 시스템 기획서 PDF (문제분석지, PR, FAQ, 통합본) | - |
-| 9 | [09_SlowPaper](09_SlowPaper) | 2026-10-16 | SlowPaper: CLIP 논문 다시 읽기 회고 PDF (다섯 가지 질문과 KPT 회고) | - |
+| 6 | [06_생성AI_결함데이터생성](06_생성AI_결함데이터생성) | 2026-10-13 ~ 10-16 | 생성형 AI로 제조 결함 데이터 만들기: 8-1 Stable Diffusion(Text-to-Image, Inpainting), 8-2 AnomalyAny, 6주차 PaDiM으로 생성 이미지 채점 | - |
+| - | [프로젝트_오픈스페이스_알박기감지](프로젝트_오픈스페이스_알박기감지) | 2026-10-13 ~ | 한양대 ERICA 융합교육관 스터디룸 알박기 감지 시스템 기획서 PDF (문제분석지, PR, FAQ, 통합본) | - |
+| - | [SlowPaper](SlowPaper) | 2026-10-16 | SlowPaper: CLIP 논문 다시 읽기 회고 PDF (다섯 가지 질문과 KPT 회고) | - |
 
 ## 참고
 
