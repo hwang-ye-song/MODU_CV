@@ -1,0 +1,1444 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>스터디룸 디지털 트윈</title>
+<style>
+  :root { --bg:#0f1115; --panel:#171a21; --line:#2a2f3a; --ink:#e8eaf0; --sub:#9aa3b2;
+          --red:#e63946; --yellow:#f4b400; --green:#2ec466; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; height:100%; background:var(--bg); color:var(--ink);
+               font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif; overflow:hidden; }
+  #app { display:flex; height:100%; }
+  #view { flex:1; position:relative; min-width:0; }
+  #view canvas { display:block; }
+  #panel { width:380px; background:var(--panel); border-left:1px solid var(--line); display:flex;
+           flex-direction:column; overflow:hidden; }
+  .sec { padding:10px 14px; border-bottom:1px solid var(--line); }
+  h1 { font-size:16px; margin:0 0 2px; } .sub { color:var(--sub); font-size:12px; }
+  .clock { font-size:24px; font-weight:700; letter-spacing:.02em; }
+  .kpis { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:6px; }
+  .kpi { background:#1e222b; border-radius:8px; padding:6px 10px; }
+  .kpi b { display:block; font-size:18px; } .kpi span { color:var(--sub); font-size:11px; }
+  .controls { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-top:8px; font-size:12px; }
+  button { background:#262b36; color:var(--ink); border:1px solid var(--line); border-radius:6px;
+           padding:5px 9px; font:inherit; cursor:pointer; }
+  button.on { background:#33507a; border-color:#4a6fa5; }
+  .rooms { display:grid; grid-template-columns:1fr 1fr; gap:5px; }
+  .room { display:flex; align-items:center; gap:6px; background:#1e222b; border-radius:6px; padding:4px 7px;
+          font-size:12px; cursor:pointer; border:1px solid transparent; }
+  .room.sel { border-color:#6f9be0; background:#24304a; }
+  .dot { width:10px; height:10px; border-radius:50%; flex:none; }
+  .room .t { margin-left:auto; color:var(--sub); font-variant-numeric:tabular-nums; }
+  #log { flex:1; overflow:auto; font-size:12px; padding:8px 14px; min-height:60px; }
+  #log div { padding:2px 0; color:var(--sub); } #log b { color:var(--ink); font-weight:600; }
+  .legend { display:flex; gap:10px; font-size:12px; margin-top:4px; }
+  .legend i { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:4px; }
+  #tip { position:absolute; left:12px; top:12px; background:rgba(15,17,21,.85); border:1px solid var(--line);
+         border-radius:8px; padding:8px 10px; font-size:12px; color:var(--sub); max-width:380px; }
+  #tip b { color:var(--ink); }
+  #board { position:absolute; inset:0; background:var(--bg); display:none; padding:28px; overflow:auto; }
+  #board h2 { margin:0 0 4px; font-size:22px; } #board .grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:16px; }
+  #board .card { border-radius:12px; padding:14px; background:#1e222b; border-left:8px solid; }
+  #board .card b { font-size:18px; } #board .card div { color:var(--sub); font-size:13px; margin-top:4px; }
+  .label { position:absolute; transform:translate(-50%,-100%); pointer-events:none; font-size:11px;
+           background:rgba(10,12,16,.8); border-radius:4px; padding:1px 5px; white-space:nowrap; }
+  .label.sel { outline:1px solid #6f9be0; font-weight:700; }
+  .camhead { display:flex; align-items:center; gap:8px; font-size:12px; margin-bottom:6px; }
+  .camhead b { font-size:13px; }
+  .badge { margin-left:auto; border-radius:10px; padding:1px 8px; font-size:11px; background:#3a3f4a; color:#cfd3db; }
+  .badge.ok { background:#1f5e3a; color:#d9ffe6; }
+  #cam { width:100%; aspect-ratio:4/3; display:block; background:#000; border-radius:6px; }
+  #cam-info { margin-top:4px; font-size:12px; color:var(--sub); min-height:16px; }
+  @media (max-width: 820px) { #app { flex-direction:column; } #panel { width:100%; height:55%; overflow:auto; } }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div id="app">
+  <div id="view">
+    <div id="tip"><b>융합교육관 스터디룸 디지털 트윈</b><br>
+      가상 학생이 공부하다 짐을 두고 나가면 문 앞 신호등이 🟡로, 30분이 지나면 🟢로 바뀝니다.
+      다른 학생이 🟢 룸에 오면 짐을 회색 바구니로 옮기고 앉습니다. 드래그로 회전, 휠로 확대,
+      <b>룸을 클릭하면</b> 그 룸 천장 카메라 화면과 YOLO 검출 결과가 오른쪽에 나옵니다.<br>
+      <span style="color:#fff">흰 박스</span> 테이블 · <span style="color:#f4b400">색 박스</span> 테이블을 30% 넓힌 감지 영역 · 사람 박스는 영역 안이면 흰색, 밖이면 회색</div>
+    <div id="labels"></div>
+    <div id="board"></div>
+  </div>
+  <div id="panel">
+    <div class="sec">
+      <h1>스터디룸 알박기 감지 시뮬레이션</h1>
+      <div class="sub">3층 6개 · 4층 오픈형 6개 · 4층 독립형 2개 (총 14개 · 72석)</div>
+      <div class="clock" id="clock">19:00</div>
+      <div class="legend"><span><i style="background:var(--red)"></i>사용중</span>
+        <span><i style="background:var(--yellow)"></i>자리비움 &lt;30분</span>
+        <span><i style="background:var(--green)"></i>이용가능 ≥30분</span></div>
+      <div class="kpis">
+        <div class="kpi"><b id="k-act">-</b><span>지금 룸 활성화율</span></div>
+        <div class="kpi"><b id="k-avg">-</b><span>평균 룸 활성화율 (19시~)</span></div>
+        <div class="kpi"><b id="k-hog">-</b><span>30분 넘게 짐만 있는 룸</span></div>
+        <div class="kpi"><b id="k-claim">0</b><span>짐 정리 후 다시 쓰인 횟수</span></div>
+      </div>
+      <div class="controls">
+        <button id="b-play" class="on">⏸ 일시정지</button>
+        속도 <button data-s="30">30배</button><button data-s="60" class="on">60배</button><button data-s="180">180배</button>
+        <button id="b-system" class="on">감지 시스템 켜짐</button>
+        <button id="b-board">1층 현황판</button>
+        <button id="b-boxes" class="on">탐지 박스 보기</button>
+        <button id="b-mode" class="on">판정: YOLO 카메라</button>
+        <button id="b-real" class="on">실사 PBR 3D 에셋</button>
+        <button id="b-cam-mode">구도: 모서리 CCTV (권장)</button>
+        <button id="b-real-photo">실제 촬영 현장 사진 (100% 실사)</button>
+      </div>
+    </div>
+    <div class="sec">
+      <div class="camhead"><span>천장 카메라</span><b id="cam-room">-</b><span id="cam-state"></span>
+        <span class="badge" id="yolo-st">YOLO 확인 중</span></div>
+      <canvas id="cam" width="960" height="720"></canvas>
+      <div id="cam-info"></div>
+    </div>
+    <div class="sec"><div class="rooms" id="rooms"></div></div>
+    <div id="log"></div>
+  </div>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
+
+const params = new URLSearchParams(location.search);
+const EVAL = params.has('eval');
+
+/* ---------- 규칙 (MVP room_logic.py 와 동일) ---------- */
+const LIMIT = 30;                       // 분: 이만큼 비면 초록
+const ON_MIN = 1, OFF_MIN = 5;          // room_logic.py 의 on 2초 / off 10초를 시뮬레이션 분 단위로 맞춘 값 (YOLO 판정 때)
+const COLORS = { red: 0xe63946, yellow: 0xf4b400, green: 0x2ec466 };
+const CSS = { red: '#e63946', yellow: '#f4b400', green: '#2ec466' };
+const NAME = { red: '사용중', yellow: '자리비움', green: '이용가능' };
+
+/* ---------- 결정적 난수 (발표 때마다 같은 흐름) ---------- */
+let seed = 20261015;
+const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
+const pick = (a) => a[Math.floor(rnd() * a.length)];
+const between = (a, b) => a + rnd() * (b - a);
+// 겉모습(옷·머리 색, 자세)은 따로 뽑아서 시나리오 흐름은 그대로 둔다
+let seed2 = 77;
+const rnd2 = () => ((seed2 = (seed2 * 1664525 + 1013904223) >>> 0) / 4294967296);
+const pick2 = (a) => a[Math.floor(rnd2() * a.length)];
+
+/* ---------- 장면 ---------- */
+const view = document.getElementById('view');
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
+view.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0f1115);
+const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 500);
+camera.position.set(0, 46, 40);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 0, 0); controls.enableDamping = true; controls.maxPolarAngle = Math.PI * 0.47;
+scene.add(new THREE.HemisphereLight(0xf2f5ff, 0x4a4540, 1.1));
+const sun = new THREE.DirectionalLight(0xfff4e6, 2.6);   // 천장 조명을 대신하는 위쪽 빛
+sun.position.set(8, 30, 10); sun.castShadow = true;
+sun.shadow.camera.left = -40; sun.shadow.camera.right = 40; sun.shadow.camera.top = 30; sun.shadow.camera.bottom = -30;
+sun.shadow.mapSize.set(4096, 4096); sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.02; sun.shadow.radius = 3;
+scene.add(sun);
+const fill = new THREE.DirectionalLight(0xdfe8ff, 0.6); fill.position.set(-14, 18, -20); scene.add(fill);
+
+const matCache = new Map();
+const mat = (c, o = {}) => new THREE.MeshStandardMaterial({ color: c, roughness: .8, ...o });
+function noiseTexture(kind) {   // 옷의 주름·결, 머리카락 결 (절차적, 외부 이미지 없음)
+  const c = document.createElement('canvas'); c.width = c.height = 256;
+  const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, 256, 256);
+  let s = kind === 'hair' ? 11 : 5; const r = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
+  if (kind === 'hair') {
+    for (let i = 0; i < 700; i++) { const x = r() * 256, a = .15 + r() * .35;
+      g.strokeStyle = r() < .7 ? `rgba(0,0,0,${a})` : `rgba(255,255,255,${a * .5})`; g.lineWidth = .6 + r();
+      g.beginPath(); g.moveTo(x, 0); g.bezierCurveTo(x + (r() - .5) * 30, 90, x + (r() - .5) * 30, 170, x + (r() - .5) * 20, 256); g.stroke(); }
+  } else {
+    const img = g.getImageData(0, 0, 256, 256);
+    for (let i = 0; i < img.data.length; i += 4) { const v = 225 + r() * 30; img.data[i] = img.data[i + 1] = img.data[i + 2] = v; }
+    g.putImageData(img, 0, 0);
+    for (let i = 0; i < 26; i++) { const y = r() * 256, a = .12 + r() * .18;   // 주름
+      g.strokeStyle = `rgba(0,0,0,${a})`; g.lineWidth = 2 + r() * 5; g.beginPath(); g.moveTo(0, y);
+      g.bezierCurveTo(80, y + (r() - .5) * 60, 170, y + (r() - .5) * 60, 256, y + (r() - .5) * 40); g.stroke(); }
+  }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
+}
+const TEX = { cloth: noiseTexture('cloth'), hair: noiseTexture('hair') };
+const cmat = (c, rough = .85, tex = null) => { const k = `${c}:${rough}:${tex}`;
+  if (!matCache.has(k)) matCache.set(k, new THREE.MeshStandardMaterial({ color: c, roughness: rough, map: tex ? TEX[tex] : null }));
+  return matCache.get(k); };
+const shade = (m) => { m.castShadow = m.receiveShadow = true; return m; };
+const box = (w, h, d, m) => shade(new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m));
+
+/* ---------- 방 배치 ---------- */
+const RW = 6.0, RD = 4.8;               // 룸 크기 (실제 융합교육관 스터디룸 규격에 맞게 넉넉하게 확장)
+const TABLE_TOP = 0.79;
+const rooms = [];
+const overlays = [];                    // 카메라 화면에는 안 나오는 3D 표시물 (색 바닥, 탐지 박스 등)
+function floorBase(cx, label) {
+  const f = box(3 * RW + 5, 0.2, 2 * RD + 6, mat(0x3a3e47)); f.castShadow = false;
+  f.position.set(cx, -0.1, 0); scene.add(f);
+  const c = document.createElement('canvas'); c.width = 512; c.height = 96;
+  const g = c.getContext('2d'); g.fillStyle = '#cfd6e4'; g.font = 'bold 56px Malgun Gothic'; g.fillText(label, 8, 68);
+  const s = new THREE.Mesh(new THREE.PlaneGeometry(8, 1.5),
+    new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true }));
+  s.rotation.x = -Math.PI / 2; s.position.set(cx - 3, 0.02, -RD - 3.8); scene.add(s);   // 바닥에 눕힌 층 이름
+}
+function officeTileTexture() {   // 실제 스터디룸 바닥 데코타일 PBR 질감
+  const c = document.createElement('canvas'); c.width = c.height = 512;
+  const g = c.getContext('2d'); g.fillStyle = '#bcb9b2'; g.fillRect(0, 0, 512, 512);
+  const img = g.getImageData(0, 0, 512, 512);
+  let s = 19; const r = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
+  for (let i = 0; i < img.data.length; i += 4) { const n = (r() - .5) * 22; img.data[i] += n; img.data[i + 1] += n; img.data[i + 2] += n; }
+  g.putImageData(img, 0, 0);
+  g.strokeStyle = '#97938b'; g.lineWidth = 2.5; g.strokeRect(0, 0, 512, 512);
+  g.beginPath(); g.moveTo(256, 0); g.lineTo(256, 512); g.moveTo(0, 256); g.lineTo(512, 256); g.stroke();
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(5, 4); return t;
+}
+function modernTableTexture() {   // 실제 융합교육관 스터디룸 내추럴 자작나무/오크 상판
+  const c = document.createElement('canvas'); c.width = 512; c.height = 256;
+  const g = c.getContext('2d'); g.fillStyle = '#eae3d5'; g.fillRect(0, 0, 512, 256);
+  let s = 42; const r = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
+  for (let i = 0; i < 90; i++) {
+    const y = r() * 256, a = .04 + r() * .06;
+    g.strokeStyle = `rgba(145, 115, 80, ${a})`; g.lineWidth = 1 + r() * 2;
+    g.beginPath(); g.moveTo(0, y);
+    for (let x = 0; x <= 512; x += 32) g.lineTo(x, y + Math.sin(x / 80 + i) * 2 + (r() - .5) * 1.5);
+    g.stroke();
+  }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+const floorM = mat(0xc2bfb8, { roughness: .85, map: officeTileTexture() }), tableM = mat(0xffffff, { roughness: .45, map: modernTableTexture() }), legM = mat(0x8a8d94, { roughness: .35, metalness: .7 });
+const frostM = mat(0xe8eef5, { transparent: true, opacity: .45, roughness: .9, depthWrite: false });
+frostM.userData.camOpacity = .97;
+// 위에서 내려다보는 3D 화면에서는 안이 보이도록 반투명, 천장 카메라 렌더에서는 실제처럼 불투명하게 그리는 재질
+const camOpaque = [frostM];
+/* ---------- 실사 3D 에셋 (GLTF/GLB PBR) 파이프라인 ---------- */
+const gltfLoader = new GLTFLoader();
+const realAssets = { chair: null, sittingPerson: null, sittingClip: null, scanPerson: null };
+let useRealAssets = true;
+const procChairs = [], realChairs = [];
+const personMixers = [];
+
+window.realAssets = realAssets;
+window.useRealAssets = useRealAssets;
+window.personMixers = personMixers;
+
+function applyRealChairs() {
+  if (!realAssets.chair) return;
+  realChairs.forEach(holder => {
+    if (holder.children.length === 0) {
+      const c = realAssets.chair.clone();
+      holder.add(c);
+    }
+    holder.visible = useRealAssets;
+  });
+  procChairs.forEach(c => (c.visible = !useRealAssets));
+}
+
+// 실제 융합교육관 학생 3D 실물 사진 텍스처 (3D 스탠디)
+const realTextureLoader = new THREE.TextureLoader();
+const realStudentTextures = [1, 2, 3, 4, 5, 6].map(i => {
+  const t = realTextureLoader.load(`./real_photos/원본_사진${i}.webp`);
+  t.colorSpace = THREE.SRGBColorSpace; return t;
+});
+
+function applyRealPeople() {
+  allPeople.forEach((p) => {
+    // 1) procModel(인체 리깅 모델)은 언제나 안전 fallback으로 가시성 유지
+    if (p.userData.procModel) {
+      p.userData.procModel.visible = !useRealAssets || !p.userData.realModel;
+    }
+
+    // 2) 3D 실사 사람 모델이 로드되었을 때 결합
+    if (!p.userData.realModel) {
+      const isSitting = p.userData.pose === 'study' || p.userData.pose === 'phone' || p.userData.seatPose;
+      const template = (isSitting && realAssets.sittingPerson) ? realAssets.sittingPerson : (realAssets.scanPerson || realAssets.sittingPerson);
+      if (template) {
+        // SkinnedMesh를 안전하게 복제 (Three.js SkeletonUtils 사용)
+        const clone = SkeletonUtils.clone(template);
+        clone.rotation.y = 0;
+        clone.position.set(0, 0, 0);
+
+        if (template === realAssets.sittingPerson && realAssets.sittingClip) {
+          const mixer = new THREE.AnimationMixer(clone);
+          const act = mixer.clipAction(realAssets.sittingClip);
+          act.play();
+          mixer.update(0.1);
+          p.userData.mixer = mixer;
+          personMixers.push(mixer);
+        }
+
+        p.add(clone);
+        p.userData.realModel = clone;
+      }
+    }
+
+    if (p.userData.realModel) {
+      p.userData.realModel.visible = useRealAssets;
+      if (p.userData.procModel) {
+        p.userData.procModel.visible = !useRealAssets;
+      }
+    }
+  });
+}
+
+// 1. 실사 PBR 패브릭 의자 로드 (chair.glb)
+gltfLoader.load('./models/chair.glb', (gltf) => {
+  const model = gltf.scene;
+  model.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+  const b3 = new THREE.Box3().setFromObject(model);
+  const sz = b3.getSize(new THREE.Vector3());
+  model.scale.setScalar(0.72 / Math.max(sz.x, sz.z));
+  model.position.y = 0;
+  realAssets.chair = model;
+  applyRealChairs();
+}, undefined, err => console.log('chair.glb 로드 생략:', err));
+
+// 2. 실제 앉아있는 실사 3D 사람 스캔 모델 (sitting_person.glb) - PBR 실사 텍스처 및 100% 불투명도 보장
+gltfLoader.load('./models/sitting_person.glb', (gltf) => {
+  const model = gltf.scene;
+  model.traverse(o => {
+    if (o.isMesh) {
+      o.castShadow = true; o.receiveShadow = true;
+      if (o.material) {
+        o.material.transparent = false;
+        o.material.opacity = 1.0;
+        o.material.depthWrite = true;
+        o.material.roughness = 0.65;
+        // 텍스처가 없는 머티리얼은 한국인 학생 실제 피부 및 데님/니트 톤 적용
+        if (!o.material.map) {
+          const n = (o.material.name || '').toLowerCase();
+          if (n.includes('skin') || n.includes('body') || n.includes('head')) o.material.color.setHex(0xdfad87);
+          else if (n.includes('hair')) o.material.color.setHex(0x181411);
+          else if (n.includes('top')) o.material.color.setHex(0x283e58);
+          else if (n.includes('bottom')) o.material.color.setHex(0x20242d);
+          else if (n.includes('footwear')) o.material.color.setHex(0x111111);
+        }
+      }
+    }
+  });
+  // 실제 학생 신체 치수(신장 172cm, 어깨너비 44cm, 착석 높이 118cm)에 정확히 맞춘 황금비율 스케일
+  const scale = 0.46;
+  model.scale.setScalar(scale);
+  model.position.set(0, -0.04, -0.04);
+
+  realAssets.sittingPerson = model;
+  if (gltf.animations && gltf.animations.length > 0) {
+    realAssets.sittingClip = gltf.animations[0];
+  }
+  applyRealPeople();
+}, undefined, err => console.log('sitting_person.glb 로드 생략:', err));
+
+// 3. 실제 전신 사람 3D 스캔 모델 (real_person_scan.glb) - 정밀 실측 스케일
+gltfLoader.load('./models/real_person_scan.glb', (gltf) => {
+  const model = gltf.scene;
+  model.traverse(o => {
+    if (o.isMesh) {
+      o.castShadow = true; o.receiveShadow = true;
+      if (o.material) {
+        o.material.transparent = false;
+        o.material.opacity = 1.0;
+        o.material.depthWrite = true;
+      }
+    }
+  });
+  model.scale.setScalar(0.78);
+  model.position.set(0, 0, 0);
+  realAssets.scanPerson = model;
+  applyRealPeople();
+}, undefined, err => console.log('real_person_scan.glb 로드 생략:', err));
+
+const chairM = mat(0x2f6f7d, { roughness: .7 }), chairLegM = mat(0x2b2b2b, { roughness: .5, metalness: .4 });
+function makeRoom(id, cx, cz, cap, glass, facing) {
+  const grp = new THREE.Group(); grp.position.set(cx, 0, cz); scene.add(grp);
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(RW - .1, RD - .1), floorM);
+  floor.rotation.x = -Math.PI / 2; floor.position.y = 0.004; floor.receiveShadow = true; grp.add(floor);
+  const tint = new THREE.Mesh(new THREE.PlaneGeometry(RW - .2, RD - .2),
+    new THREE.MeshBasicMaterial({ color: COLORS.green, transparent: true, opacity: .18, depthWrite: false }));
+  tint.rotation.x = -Math.PI / 2; tint.position.y = 0.012; grp.add(tint); overlays.push(tint);
+  // 유리벽은 안이 투명하게 비치도록 투명도 최적화 (카메라 및 시야 가림 방지)
+  const wallM = glass ? mat(0x9fc3e8, { transparent: true, opacity: .12, roughness: .1, metalness: .1, depthWrite: false })
+                      : mat(0x8b919c, { transparent: true, opacity: .35, depthWrite: false });
+  if (!glass) { wallM.userData.camOpacity = 1; camOpaque.push(wallM); }
+  const H = 2.65, t = 0.08;
+  // 문은 복도(z=0) 쪽 벽 가운데 (도어 높이 2.1m)
+  const doorZ = facing * (RD / 2);
+  [[-RD / 2, true], [RD / 2, true]].forEach(([z]) => {
+    if (Math.sign(z) === facing) {
+      const l = box((RW - 1.2) / 2, H, t, wallM); l.position.set(-(RW + 1.2) / 4, H / 2, z); grp.add(l);
+      const r = l.clone(); r.position.x = (RW + 1.2) / 4; grp.add(r);
+      const lintel = box(1.2, H - 2.1, t, wallM); lintel.position.set(0, 2.1 + (H - 2.1) / 2, z); grp.add(lintel);
+    } else { const w = box(RW, H, t, wallM); w.position.set(0, H / 2, z); grp.add(w); }
+  });
+  // 측면 벽: 옆 방과의 경계면에만 사생활 보호 반투명 시트 배치 (정면 및 천장 카메라 시야 가림 없음)
+  [-RW / 2, RW / 2].forEach(x => {
+    const w = box(t, H, RD, wallM); w.position.set(x, H / 2, 0); grp.add(w);
+    if (glass) {
+      const b = box(t * 1.1, 1.6, RD * 0.96, frostM);
+      b.position.set(x, 1.45, 0);
+      b.castShadow = false;
+      grp.add(b);
+    }
+  });
+  const door = box(1.2, 2.1, t * .6, wallM); door.position.set(0, 1.05, doorZ); grp.add(door);
+  grp.children.forEach(m => { if (m.material === wallM) m.castShadow = false; });
+  // 테이블과 의자 (6인실 3.4m, 4인실 2.4m로 쾌적한 좌석 간격 확보)
+  const tw = cap === 6 ? 3.4 : 2.4;
+  const table = box(tw, 0.06, 1.25, tableM); table.position.set(0, TABLE_TOP - .03, -facing * 0.2); grp.add(table);
+  [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sz]) => {
+    const leg = box(.06, .73, .06, legM); leg.position.set(sx * (tw / 2 - .12), .365, table.position.z + sz * .52); grp.add(leg); });
+  const seats = [];
+  const per = cap / 2, step = tw / per;
+  for (let side of [-1, 1]) for (let i = 0; i < per; i++) {
+    const x = -tw / 2 + step * (i + .5), z = table.position.z + side * 0.85;
+    // 기존 절차적 의자
+    const chairGrp = new THREE.Group();
+    const seat = box(.46, .06, .44, chairM); seat.position.set(0, .44, 0); chairGrp.add(seat);
+    const back = box(.46, .4, .05, chairM); back.position.set(0, .7, side * .22); chairGrp.add(back);
+    [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([a, b]) => {
+      const l = box(.03, .42, .03, chairLegM); l.position.set(a * .2, .21, b * .19); chairGrp.add(l); });
+    chairGrp.position.set(x, 0, z);
+    grp.add(chairGrp);
+    procChairs.push(chairGrp);
+
+    // 실사 PBR 의자 홀더
+    const realChairHolder = new THREE.Group();
+    realChairHolder.position.set(x, 0, z);
+    realChairHolder.rotation.y = side > 0 ? 0 : Math.PI;
+    realChairHolder.visible = useRealAssets && realAssets.chair !== null;
+    grp.add(realChairHolder);
+    realChairs.push(realChairHolder);
+
+    seats.push(new THREE.Vector3(cx + x, 0, cz + z));
+  }
+  // 실제 스터디룸 인테리어 시설물
+  const backZ = -facing * (RD / 2 - 0.03);
+  // 1) 벽걸이 대형 모니터 (디스플레이)
+  const tvW = cap === 6 ? 1.4 : 1.1;
+  const tvBezel = box(tvW, 0.76, 0.03, mat(0x1a1a1a, { roughness: .3, metalness: .6 }));
+  const tvScreen = new THREE.Mesh(new THREE.PlaneGeometry(tvW - 0.06, 0.70),
+    mat(0x1a2638, { roughness: .2, emissive: 0x0c192c, emissiveIntensity: .6 }));
+  tvScreen.position.z = facing * 0.016;
+  if (facing === 1) tvScreen.rotation.y = Math.PI;
+  const tvGrp = new THREE.Group(); tvGrp.add(tvBezel, tvScreen);
+  tvGrp.position.set(0.6, 1.62, backZ); grp.add(tvGrp);
+
+  // 2) 화이트보드 및 펜 트레이
+  const wbW = cap === 6 ? 1.3 : 1.0;
+  const wb = box(wbW, 0.82, 0.015, mat(0xf4f5f7, { roughness: .4 }));
+  wb.position.set(-0.75, 1.62, backZ);
+  const wbTray = box(wbW, 0.02, 0.05, mat(0x9ca3af, { roughness: .3, metalness: .7 }));
+  wbTray.position.set(-0.75, 1.18, backZ + facing * 0.026);
+  grp.add(wb, wbTray);
+
+  // 3) 천장 LED 슬림 평판등 조명 기구 (층고 2.65m에 맞춤)
+  const ceilY = 2.62;
+  const ledFixture = box(tw * 0.65, 0.03, 0.45, mat(0x333333, { roughness: .5 }));
+  const ledEmitter = new THREE.Mesh(new THREE.PlaneGeometry(tw * 0.65 - 0.04, 0.41),
+    new THREE.MeshBasicMaterial({ color: 0xfffbee }));
+  ledEmitter.rotation.x = Math.PI / 2; ledEmitter.position.y = -0.016;
+  ledFixture.add(ledEmitter);
+  ledFixture.position.set(0, ceilY, table.position.z);
+  grp.add(ledFixture);
+
+  // 4) 출입문 손잡이 (메탈 핸들 바)
+  const handle = box(0.025, 0.28, 0.025, mat(0xd1d5db, { roughness: .2, metalness: .9 }));
+  handle.position.set(0.65, 1.05, doorZ + facing * 0.045);
+  grp.add(handle);
+
+  // 5) 벽면 전원 콘센트 플레이트 (2구)
+  const outlet = box(0.12, 0.12, 0.015, mat(0xe5e7eb, { roughness: .5 }));
+  outlet.position.set(-tw / 2 - 0.25, 0.45, backZ);
+  grp.add(outlet);
+
+  // 문 앞 신호등과 바구니
+  const pole = box(.08, 1.6, .08, mat(0x222222)); pole.position.set(1.0, .8, doorZ + facing * .35); grp.add(pole);
+  const housing = box(.32, .9, .2, mat(0x151515)); housing.position.set(1.0, 1.85, doorZ + facing * .35); grp.add(housing);
+  const lights = {};
+  ['red', 'yellow', 'green'].forEach((k, i) => {
+    const m = new THREE.MeshStandardMaterial({ color: COLORS[k], emissive: COLORS[k], emissiveIntensity: 0 });
+    const s = new THREE.Mesh(new THREE.SphereGeometry(.11, 16, 12), m);
+    s.position.set(1.0, 2.13 - i * .27, doorZ + facing * .46); grp.add(s); lights[k] = m;
+  });
+  const basket = box(.6, .35, .4, mat(0x9aa0a8)); basket.position.set(-1.3, .17, doorZ + facing * .5); grp.add(basket);
+  const room = { id, cap, glass, grp, tint, floor, lights, seats, cx, cz, facing, tableMesh: table,
+    tableZ: cz + table.position.z,
+    door: new THREE.Vector3(cx, 0, cz + doorZ + facing * .9),
+    basket: new THREE.Vector3(cx - 1.3, .12, cz + doorZ + facing * .5),
+    people: [], bags: [], awaySince: 0, state: 'green', away: 0, claimed: 0 };
+  floor.userData.room = room;
+  rooms.push(room);
+  return room;
+}
+// 3층 (왼쪽), 4층 (오른쪽)
+const F3 = -13, F4 = 13;
+floorBase(F3, '3층'); floorBase(F4, '4층');
+for (let r = 0; r < 2; r++) for (let c = 0; c < 3; c++) {
+  const z = r === 0 ? -(RD / 2 + 1.2) : (RD / 2 + 1.2), facing = r === 0 ? 1 : -1;
+  makeRoom(`3층-${r * 3 + c + 1}`, F3 + (c - 1) * RW, z, 6, true, facing);
+}
+const f4 = [];
+for (let r = 0; r < 2; r++) for (let c = 0; c < 4; c++) {
+  const z = r === 0 ? -(RD / 2 + 1.2) : (RD / 2 + 1.2), facing = r === 0 ? 1 : -1;
+  const indep = r === 1 && c === 3 || r === 0 && c === 3;
+  f4.push([F4 + (c - 1.5) * (RW * .82), z, indep, facing]);
+}
+// 4층은 8개라 적정 비율(0.82)로 균형 배치
+let n4 = 1, d4 = 1;
+f4.forEach(([x, z, indep, facing]) => {
+  const id = indep ? `4층-독립${d4++}` : `4층-${n4++}`;
+  const room = makeRoom(id, x, z, indep ? 6 : 4, !indep, facing);
+  room.grp.scale.x = .82; room.seats.forEach(s => s.x = x + (s.x - x) * .82);
+  room.basket.x = x + (room.basket.x - x) * .82;
+});
+
+/* ---------- 룸 천장 카메라 (모서리 대각선 / 천장 수직 직하 탑다운 / 측면 뷰 지원) ---------- */
+const CAM_W = 960, CAM_H = 720;
+let CAM_MODE = params.get('cam') || 'corner';
+const CAM_FOV = +(params.get('fov') || 72), CAM_Y = +(params.get('camy') || 2.55);
+const cctvModelM = mat(0xf0f0f0, { roughness: .4 }), lensM = mat(0x111111, { roughness: .2 });
+
+const CAM_MODES = [
+  { id: 'corner', label: '구도: 모서리 CCTV (권장)' },
+  { id: 'top', label: '구도: 천장 수직 직하 (탑다운)' },
+  { id: 'end', label: '구도: 테이블 측면' }
+];
+
+function getCamTransform(r, mode) {
+  const sx = r.grp.scale.x;
+  let pos, look;
+  if (mode === 'top') {          // 천장 직하(90도 수직 탑다운): 테이블 중앙 바로 위에서 내려다봄
+    pos = new THREE.Vector3(r.cx, CAM_Y, r.tableZ);
+    look = new THREE.Vector3(r.cx, 0.45, r.tableZ + 0.001);
+  } else if (mode === 'end') {   // 테이블 짧은 쪽 벽 위: 양쪽 사람이 옆모습으로 보임
+    pos = new THREE.Vector3(r.cx + (RW / 2 - .25) * sx, CAM_Y * 0.85, r.tableZ - r.facing * .35);
+    look = new THREE.Vector3(r.cx - .35 * sx, .5, r.tableZ);
+  } else {                       // 안쪽 모서리: 테이블을 대각선으로 내려다봄 (기본/권장)
+    pos = new THREE.Vector3(r.cx + (RW / 2 - .22) * sx, CAM_Y, r.cz - r.facing * (RD / 2 - .18));
+    look = new THREE.Vector3(r.cx - .1, .45, r.tableZ + r.facing * .15);
+  }
+  return { pos, look };
+}
+
+rooms.forEach(r => {
+  const cam = new THREE.PerspectiveCamera(CAM_FOV, CAM_W / CAM_H, 0.05, 40);
+  const { pos, look } = getCamTransform(r, CAM_MODE);
+  cam.position.copy(pos); cam.lookAt(look);
+  cam.updateMatrixWorld(true);
+  r.cctv = cam;
+  const dir = new THREE.Vector3(); cam.getWorldDirection(dir);
+  const body = new THREE.Group();
+  const housing = new THREE.Mesh(new THREE.CylinderGeometry(.07, .07, .2, 16), cctvModelM); housing.rotation.x = Math.PI / 2;
+  const lens = new THREE.Mesh(new THREE.CylinderGeometry(.045, .045, .02, 16), lensM); lens.rotation.x = Math.PI / 2; lens.position.z = .1;
+  body.add(housing, lens); body.position.copy(pos).addScaledVector(dir, -.14); body.lookAt(pos.clone().add(dir));
+  scene.add(body);
+  r.cctvBody = body;
+});
+
+function applyCamMode(mode) {
+  CAM_MODE = mode;
+  rooms.forEach(r => {
+    const { pos, look } = getCamTransform(r, mode);
+    r.cctv.position.copy(pos); r.cctv.lookAt(look);
+    r.cctv.updateMatrixWorld(true);
+    if (r.cctvBody) {
+      const dir = new THREE.Vector3(); r.cctv.getWorldDirection(dir);
+      r.cctvBody.position.copy(pos).addScaledVector(dir, -.14);
+      r.cctvBody.lookAt(pos.clone().add(dir));
+    }
+  });
+  if (selRoom) {
+    frustumCam.position.copy(selRoom.cctv.position); frustumCam.quaternion.copy(selRoom.cctv.quaternion);
+    frustumCam.updateMatrixWorld(true); frustumHelper.update();
+  }
+}
+// 선택한 룸 카메라의 시야(절두체)
+const frustumCam = new THREE.PerspectiveCamera(CAM_FOV, CAM_W / CAM_H, 0.1, 2.6);
+const frustumHelper = new THREE.CameraHelper(frustumCam);
+frustumHelper.setColors(new THREE.Color(0x6fd3ff), new THREE.Color(0x6fd3ff), new THREE.Color(0x6fd3ff),
+  new THREE.Color(0xffffff), new THREE.Color(0x6fd3ff));
+scene.add(frustumHelper); overlays.push(frustumHelper);
+
+/* ---------- 탐지 박스 (MVP detector.py와 같은 방식) ---------- */
+let showBoxes = true;
+const EXPAND = 0.30;
+rooms.forEach(r => {
+  r.grp.updateMatrixWorld(true);
+  const tb = new THREE.Box3().setFromObject(r.tableMesh);
+  tb.min.y = 0; tb.max.y = .8;
+  const size = tb.getSize(new THREE.Vector3());
+  const zone = tb.clone();
+  zone.min.x -= size.x * EXPAND / 2; zone.max.x += size.x * EXPAND / 2;   // 가로 30%
+  zone.min.z -= size.z * EXPAND / 2; zone.max.z += size.z * EXPAND / 2;   // 세로 30%
+  zone.min.y = 0; zone.max.y = 1.5;
+  r.tableBox = tb; r.zone = zone;
+  r.tableHelper = new THREE.Box3Helper(tb, 0xffffff); scene.add(r.tableHelper);
+  r.zoneHelper = new THREE.Box3Helper(zone, COLORS.green); scene.add(r.zoneHelper);
+  overlays.push(r.tableHelper, r.zoneHelper);
+  r.detected = 0;
+  r.tracker = null; r.yolo = null;
+});
+const _pb = new THREE.Box3();
+function updateBoxes() {
+  rooms.forEach(r => (r.detected = 0));
+  allPeople.forEach(m => {
+    const h = m.userData.helper;
+    _pb.setFromObject(m); h.box.copy(_pb);
+    const room = rooms.find(r => r.zone.intersectsBox(_pb));   // 사람 박스가 감지 영역과 겹치면 재석
+    if (room) room.detected++;
+    h.material.color.setHex(room ? 0xffffff : 0x777777);
+    h.visible = showBoxes;
+  });
+  rooms.forEach(r => { r.tableHelper.visible = r.zoneHelper.visible = showBoxes; });
+}
+
+/* ---------- 사람 (절차적 휴머노이드: 머리·머리카락·목·몸통·팔·다리) ---------- */
+const SKIN = [0xf2cfb0, 0xe8b996, 0xd9a47e, 0xc18660, 0xf6dcc4];
+const HAIR = [0x16110d, 0x221812, 0x2e2018, 0x4a3221, 0x0d0d0d, 0x6b4a2f];
+const TOPS = [0x2f4a7a, 0xb8423a, 0x3f7d4f, 0xe9e6de, 0x6b4f8a, 0x23262d, 0xd6a13c, 0x8fa3b8, 0xc8687f, 0x4f6d7a, 0x7a3b2e, 0xf2f2f2];
+const BOTTOMS = [0x283044, 0x1d1f24, 0x4a5a70, 0x6b5c4a, 0x3a3a3a, 0x8a8f99, 0x2c3e66];
+const SHOES = [0x1a1a1a, 0xeeeeee, 0x5a3a28, 0x30343c];
+// 몸통: 허리 → 가슴 → 어깨로 넓어지는 회전체 (알약 모양보다 사람 실루엣에 가깝게)
+const torsoGeo = new THREE.LatheGeometry([[0, -.02], [.125, 0], [.13, .08], [.14, .18], [.155, .28], [.165, .38],
+  [.168, .44], [.155, .49], [.12, .525], [.07, .545], [0, .55]].map(([x, y]) => new THREE.Vector2(x, y)), 24);
+torsoGeo.computeVertexNormals();
+const PG = {
+  torso: torsoGeo,
+  pelvis: new THREE.CapsuleGeometry(.12, .12, 4, 12),
+  upper: new THREE.CapsuleGeometry(.06, .19, 4, 12),
+  fore: new THREE.CapsuleGeometry(.048, .17, 4, 12),
+  hand: new THREE.SphereGeometry(.046, 10, 8),
+  thigh: new THREE.CapsuleGeometry(.072, .3, 4, 10),
+  shin: new THREE.CapsuleGeometry(.055, .32, 4, 10),
+  foot: new RoundedBoxGeometry(.1, .07, .25, 2, .03),
+  neck: new THREE.CylinderGeometry(.048, .055, .11, 10),
+  head: new THREE.SphereGeometry(.105, 22, 16),
+  hairCap: new THREE.SphereGeometry(.116, 22, 12, 0, Math.PI * 2, 0, Math.PI * .62),
+  delt: new THREE.SphereGeometry(.07, 14, 10),
+  hairLong: new THREE.CapsuleGeometry(.1, .14, 6, 16),
+  eye: new THREE.SphereGeometry(.013, 8, 6),
+  nose: new THREE.SphereGeometry(.018, 8, 6),
+  ear: new THREE.SphereGeometry(.025, 8, 6),
+  collar: new THREE.TorusGeometry(.075, .025, 8, 20),
+  hood: new THREE.SphereGeometry(.1, 16, 10, 0, Math.PI * 2, 0, Math.PI * .55),
+};
+const eyeM = mat(0x1a1410, { roughness: .3 });
+const mesh = (g, m, x = 0, y = 0, z = 0) => { const o = shade(new THREE.Mesh(g, m)); o.position.set(x, y, z); return o; };
+const grp = (x = 0, y = 0, z = 0) => { const o = new THREE.Group(); o.position.set(x, y, z); return o; };
+
+const allPeople = new Set();
+function removePerson(m) {
+  scene.remove(m); allPeople.delete(m);
+  if (m.userData.mixer) {
+    const idx = personMixers.indexOf(m.userData.mixer);
+    if (idx !== -1) personMixers.splice(idx, 1);
+  }
+  if (m.userData.helper) { scene.remove(m.userData.helper); overlays.splice(overlays.indexOf(m.userData.helper), 1); }
+  if (m.userData.prop) scene.remove(m.userData.prop);
+}
+function makePerson() {
+  const skin = cmat(pick2(SKIN), .6), hair = cmat(pick2(HAIR), .7, 'hair'), top = cmat(pick2(TOPS), .85, 'cloth'),
+        bottom = cmat(pick2(BOTTOMS), .85, 'cloth'), shoe = cmat(pick2(SHOES), .6);
+  const longSleeve = rnd2() < .6, longHair = rnd2() < .4;
+  const root = new THREE.Group(); root.scale.setScalar(.78 + rnd2() * .06);
+  const procModel = new THREE.Group(); root.add(procModel);
+
+  const hips = grp(0, .965, 0); procModel.add(hips);
+  const pelvis = mesh(PG.pelvis, bottom); pelvis.rotation.z = Math.PI / 2; pelvis.scale.set(1, 1, .78); hips.add(pelvis);
+  const spine = grp(0, .04, 0); hips.add(spine);
+  const torso = mesh(PG.torso, top, 0, 0, 0); torso.scale.set(1.25, 1, .66); spine.add(torso);
+  const neck = grp(0, .5, 0); spine.add(neck); neck.add(mesh(PG.neck, skin, 0, .05, 0));
+  const head = grp(0, .085, 0); neck.add(head);
+  const hm = mesh(PG.head, skin, 0, .1, .01); hm.scale.set(.9, 1.08, 1); head.add(hm);
+  const cap = mesh(PG.hairCap, hair, 0, .108, -.016); cap.rotation.x = -.62; cap.scale.set(.97, 1.06, 1.06); head.add(cap);
+  if (longHair) { const lh = mesh(PG.hairLong, hair, 0, .03, -.06); lh.scale.set(1.05, 1, .5); head.add(lh); }
+  [-1, 1].forEach(s => head.add(mesh(PG.eye, eyeM, s * .034, .115, .1)));
+  head.add(mesh(PG.nose, skin, 0, .085, .11));
+  [-1, 1].forEach(s => head.add(mesh(PG.ear, skin, s * .098, .095, 0)));
+  const collar = mesh(PG.collar, top, 0, .52, 0); collar.rotation.x = Math.PI / 2; collar.scale.set(1.15, .85, 1); spine.add(collar);
+  if (rnd2() < .35) { const hood = mesh(PG.hood, top, 0, .5, -.08); hood.rotation.x = -.5; hood.scale.set(1.25, .8, .9); spine.add(hood); }
+  const sh = [], el = [], hip = [], knee = [];
+  [-1, 1].forEach(s => {
+    const S = grp(s * .21, .45, 0); spine.add(S); sh.push(S);
+    S.add(mesh(PG.delt, top, 0, -.02, 0), mesh(PG.upper, top, 0, -.15, 0));
+    const E = grp(0, -.29, 0); S.add(E); el.push(E);
+    E.add(mesh(PG.fore, longSleeve ? top : skin, 0, -.13, 0));
+    E.add(mesh(PG.hand, skin, 0, -.28, 0));
+    const H = grp(s * .095, -.03, 0); hips.add(H); hip.push(H);
+    H.add(mesh(PG.thigh, bottom, 0, -.22, 0));
+    const K = grp(0, -.44, 0); H.add(K); knee.push(K);
+    K.add(mesh(PG.shin, bottom, 0, -.21, 0));
+    K.add(mesh(PG.foot, shoe, 0, -.46, .055));
+  });
+
+  // 항상 procModel 참조 보존 및 기본 가시성 확보
+  root.userData.procModel = procModel;
+  procModel.visible = true;
+
+  // 실사 3D 사람 스캔 모델 (sitting_person 또는 real_person_scan) 결합
+  if (useRealAssets) {
+    const template = realAssets.sittingPerson || realAssets.scanPerson;
+    if (template) {
+      const realChar = SkeletonUtils.clone(template);
+      realChar.rotation.y = 0;
+      realChar.position.set(0, 0, 0);
+      if (template === realAssets.sittingPerson && realAssets.sittingClip) {
+        const mixer = new THREE.AnimationMixer(realChar);
+        const act = mixer.clipAction(realAssets.sittingClip);
+        act.play();
+        mixer.update(0.1);
+        root.userData.mixer = mixer;
+        personMixers.push(mixer);
+      }
+      root.add(realChar);
+      root.userData.realModel = realChar;
+      realChar.visible = true;
+      procModel.visible = false;
+    }
+  }
+
+  root.userData.rig = { hips, spine, neck, head, sh, el, hip, knee };
+  root.userData.phase = rnd2() * 6;
+  root.userData.helper = new THREE.Box3Helper(new THREE.Box3(), 0xffffff); scene.add(root.userData.helper);
+  overlays.push(root.userData.helper);
+  allPeople.add(root); scene.add(root); setPose(root, 'stand');
+  return root;
+}
+// 자세: stand(서 있음) · walk(걷기) · study(앉아서 공부) · sleep(테이블에 엎드려 잠)
+function setPose(p, pose, ph = 0) {
+  const r = p.userData.rig; p.userData.pose = pose;
+  [r.spine, r.neck, r.head, ...r.sh, ...r.el, ...r.hip, ...r.knee].forEach(o => o.rotation.set(0, 0, 0));
+  r.hips.position.set(0, .965, 0);
+  if (pose === 'stand') {
+    r.el.forEach(e => (e.rotation.x = -.15)); r.sh.forEach((s, i) => (s.rotation.z = (i ? 1 : -1) * .06));
+  } else if (pose === 'walk') {
+    const a = Math.sin(ph);
+    r.hips.position.y = .955 + Math.abs(Math.cos(ph)) * .02;
+    r.hip[0].rotation.x = -.42 * a; r.hip[1].rotation.x = .42 * a;
+    r.knee[0].rotation.x = Math.max(0, Math.sin(ph + 1.4)) * .75; r.knee[1].rotation.x = Math.max(0, -Math.sin(ph + 1.4)) * .75;
+    r.sh[0].rotation.x = .38 * a; r.sh[1].rotation.x = -.38 * a;
+    r.sh.forEach((s, i) => (s.rotation.z = (i ? 1 : -1) * .07));
+    r.el.forEach(e => (e.rotation.x = -.35)); r.spine.rotation.x = .05;
+  } else {   // 앉은 자세 공통: 의자 위 엉덩이, 허벅지는 앞으로, 정강이는 아래로
+    r.hips.position.y = .53;
+    r.hip.forEach((h, i) => { h.rotation.x = -Math.PI / 2 + .05; h.rotation.z = (i ? 1 : -1) * .06; });
+    r.knee.forEach(k => (k.rotation.x = Math.PI / 2 - .05));
+    if (pose === 'study') {           // 상체를 조금 숙이고 팔은 테이블 위
+      r.spine.rotation.x = .22; r.neck.rotation.x = .18; r.head.rotation.x = .22;
+      r.sh.forEach((s, i) => { s.rotation.x = -1.2; s.rotation.z = (i ? -1 : 1) * .22; });
+      r.el.forEach((e, i) => { e.rotation.x = -.55; e.rotation.z = (i ? -1 : 1) * .35; });
+    } else if (pose === 'phone') {    // 의자에 기대어 스마트폰을 보는 자세
+      r.spine.rotation.x = -.04; r.neck.rotation.x = .38; r.head.rotation.x = .32;
+      r.sh[0].rotation.set(-.88, .18, .22); r.sh[1].rotation.set(-.88, -.18, -.22);
+      r.el[0].rotation.set(-1.15, 0, -.35); r.el[1].rotation.set(-1.15, 0, .35);
+    } else {                          // sleep: 실제 융합교육관 실험처럼 엎드린 자세
+      r.hips.position.z = -.07;
+      const foldArms = ph > 3;
+      if (foldArms) {                 // 두 팔을 둥글게 모아 베개처럼 엎드림
+        r.spine.rotation.x = .85; r.neck.rotation.x = .48; r.head.rotation.x = .28; r.head.rotation.y = .18;
+        r.sh[0].rotation.set(-2.2, 0, .28); r.sh[1].rotation.set(-2.2, 0, -.28);
+        r.el[0].rotation.set(0, 0, 1.7); r.el[1].rotation.set(0, 0, -1.7);
+      } else {                        // 한쪽 팔을 편 채 머리를 기댄 엎드림
+        r.spine.rotation.x = .78; r.neck.rotation.x = .42; r.head.rotation.x = .24; r.head.rotation.y = -.55;
+        r.sh[0].rotation.set(-1.85, 0, .14); r.sh[1].rotation.set(-2.25, 0, -.18);
+        r.el[0].rotation.set(-.35, 0, .75); r.el[1].rotation.set(0, 0, -1.65);
+      }
+    }
+  }
+
+  // 실사 모델과 리깅 모델 간 전환 제어 (엎드려 자는 자세는 인체 관절 리깅을 선명하게 표시)
+  if (p.userData.realModel) {
+    if (pose === 'sleep') {
+      p.userData.realModel.visible = false;
+      if (p.userData.procModel) p.userData.procModel.visible = true;
+    } else {
+      p.userData.realModel.visible = useRealAssets;
+      if (p.userData.procModel) p.userData.procModel.visible = !useRealAssets;
+    }
+  } else if (p.userData.procModel) {
+    p.userData.procModel.visible = true;
+  }
+}
+
+/* ---------- 가방(백팩), 텀블러, 필통, 외투 및 책상 위 물건 ---------- */
+const BAGS = [0x1f2a44, 0x2a2a2e, 0x5a5f69, 0x8a2f2f, 0x2f5a3c, 0x3b5f8a, 0x6b5440, 0xc9c3b6];
+const BG = { body: new RoundedBoxGeometry(.3, .4, .17, 3, .06), pocket: new RoundedBoxGeometry(.22, .17, .06, 2, .025),
+  strap: new RoundedBoxGeometry(.05, .32, .02, 1, .008), handle: new THREE.TorusGeometry(.035, .009, 6, 14, Math.PI) };
+const zipM = mat(0x111111, { roughness: .4 });
+const allBags = new Set();
+function makeBag() {
+  const m = cmat(pick2(BAGS), .75), b = new THREE.Group();
+  b.add(mesh(BG.body, m, 0, .2, 0), mesh(BG.pocket, m, 0, .13, .1));
+  const zip = mesh(new THREE.BoxGeometry(.18, .008, .005), zipM, 0, .2, .132); b.add(zip);
+  [-1, 1].forEach(s => b.add(mesh(BG.strap, cmat(0x1b1b1b, .7), s * .08, .2, -.095)));
+  const h = mesh(BG.handle, cmat(0x1b1b1b, .7), 0, .4, -.02); b.add(h);
+  b.rotation.y = (rnd2() - .5) * .6;
+  scene.add(b); allBags.add(b); return b;
+}
+function removeBag(b) { scene.remove(b); allBags.delete(b); }
+function bagSpot(room, s) {   // 앉는 자리 앞 테이블 위, 오른쪽
+  const seat = room.seats[s], dir = Math.sign(room.tableZ - seat.z);
+  return new THREE.Vector3(seat.x + .3, TABLE_TOP, seat.z + dir * .62);
+}
+
+// 텀블러/머그컵 (COCO bottle/cup 클래스)
+const tumblerColors = [0x2b4c7e, 0xdfe3ea, 0x20242c, 0xe06d88, 0x4d7c5f];
+const mugM = mat(0xf8fafc, { roughness: .35 });
+function makeDrink() {
+  const g = new THREE.Group();
+  if (rnd2() < 0.65) {   // 텀블러 (보온병)
+    const tm = mat(pick2(tumblerColors), { roughness: .3, metalness: .7 });
+    const b = mesh(new THREE.CylinderGeometry(.038, .034, .18, 14), tm, 0, .09, 0);
+    const lid = mesh(new THREE.CylinderGeometry(.039, .039, .025, 14), mat(0x22262e, { roughness: .4 }), 0, .19, 0);
+    g.add(b, lid);
+  } else {               // 머그컵
+    const cup = mesh(new THREE.CylinderGeometry(.042, .038, .11, 14), mugM, 0, .055, 0);
+    const handle = mesh(new THREE.TorusGeometry(.025, .007, 6, 12, Math.PI), mugM, .044, .055, 0);
+    handle.rotation.z = -Math.PI / 2;
+    g.add(cup, handle);
+  }
+  scene.add(g); allBags.add(g); return g;
+}
+
+// 필통과 볼펜
+const pencilCaseM = mat(0x374151, { roughness: .85 });
+const penM = mat(0x1d4ed8, { roughness: .3 });
+function makePencilCase() {
+  const g = new THREE.Group();
+  const pc = mesh(new RoundedBoxGeometry(.19, .04, .055, 2, .015), pencilCaseM, 0, .02, 0);
+  const pen = mesh(new THREE.CylinderGeometry(.004, .004, .13, 8), penM, .04, .004, .035);
+  pen.rotation.z = Math.PI / 2; pen.rotation.y = .35;
+  g.add(pc, pen);
+  scene.add(g); allBags.add(g); return g;
+}
+
+// 의자 등받이에 걸쳐둔 외투/패딩
+const jacketColors = [0x111827, 0x272e3f, 0x4b5563, 0x583124];
+function makeJacket(room, s) {
+  const seat = room.seats[s], dir = Math.sign(room.tableZ - seat.z);
+  const m = cmat(pick2(jacketColors), .9, 'cloth'), g = new THREE.Group();
+  const top = mesh(new RoundedBoxGeometry(.48, .13, .12, 2, .025), m, 0, .7, -dir * .23);
+  const flap = mesh(new RoundedBoxGeometry(.46, .38, .05, 2, .02), m, 0, .5, -dir * .27);
+  g.add(top, flap);
+  g.position.copy(seat).setY(0);
+  scene.add(g); allBags.add(g); return g;
+}
+
+const laptopM = mat(0x8d9096, { roughness: .35, metalness: .6 }), screenM = mat(0x1d2b45, { emissive: 0x2a4f8a, emissiveIntensity: .6, roughness: .3 });
+const paperM = mat(0xf7f5ef, { roughness: .9 });
+function makeProp(room, s) {   // 공부하는 사람 앞의 노트북 또는 펼친 책
+  const seat = room.seats[s], dir = Math.sign(room.tableZ - seat.z), g = new THREE.Group();
+  if (rnd2() < .55) {
+    g.add(mesh(new THREE.BoxGeometry(.32, .018, .22), laptopM, 0, .009, 0));
+    const scr = new THREE.Group(); scr.position.set(0, .018, .11); scr.rotation.x = -.3;
+    scr.add(mesh(new THREE.BoxGeometry(.32, .21, .012), laptopM, 0, .105, 0), mesh(new THREE.PlaneGeometry(.29, .18), screenM, 0, .105, -.007));
+    scr.children[1].rotation.y = Math.PI; g.add(scr);
+  } else {
+    [-1, 1].forEach(k => { const pg = mesh(new THREE.BoxGeometry(.17, .02, .24), paperM, k * .086, .01, 0); pg.rotation.z = k * .06; g.add(pg); });
+  }
+  g.position.set(seat.x, TABLE_TOP, seat.z + dir * .48);
+  g.rotation.y = dir > 0 ? Math.PI : 0;   // 화면이 사람 반대쪽, 사람을 향해 펼침
+  scene.add(g); return g;
+}
+
+// 스마트폰 소품 (COCO cell phone 클래스)
+const phoneGeo = new RoundedBoxGeometry(.075, .008, .15, 2, .008);
+const phoneScreenM = mat(0x111827, { roughness: .2, emissive: 0x93c5fd, emissiveIntensity: .7 });
+const phoneCaseM = mat(0x1f2937, { roughness: .4 });
+function makePhone() {
+  const g = new THREE.Group();
+  g.add(mesh(phoneGeo, phoneCaseM, 0, 0, 0));
+  const scr = new THREE.Mesh(new THREE.PlaneGeometry(.068, .14), phoneScreenM);
+  scr.rotation.x = -Math.PI / 2; scr.position.y = .005;
+  g.add(scr);
+  return g;
+}
+
+/* ---------- 움직임 ---------- */
+const movers = new Set();
+function moveTo(obj, target, sec = 1.2, done) {
+  obj.userData.from = obj.position.clone(); obj.userData.to = target.clone();
+  obj.userData.t = 0; obj.userData.dur = sec; obj.userData.done = done; movers.add(obj);
+  if (obj.userData.rig) { const d = target.clone().sub(obj.position); if (d.lengthSq() > 1e-4) obj.rotation.y = Math.atan2(d.x, d.z); }
+}
+function sitDown(p, room, s, pose) {   // 의자에 앉아 테이블을 바라봄
+  const seat = room.seats[s];
+  p.position.copy(seat).setY(0);
+  const dir = Math.sign(room.tableZ - seat.z);
+  p.rotation.y = dir > 0 ? 0 : Math.PI;
+  if (!pose && !p.userData.seatPose) {
+    const r = rnd2();
+    p.userData.seatPose = r < .5 ? 'study' : (r < .75 ? 'sleep' : 'phone');
+  } else {
+    p.userData.seatPose = pose || p.userData.seatPose;
+  }
+  setPose(p, p.userData.seatPose, p.userData.phase);
+  if (p.userData.seatPose === 'study' && !p.userData.prop) {
+    p.userData.prop = makeProp(room, s);
+  } else if (p.userData.seatPose === 'phone' && !p.userData.prop) {
+    const phn = makePhone();
+    phn.position.set(seat.x + .05, TABLE_TOP + .006, seat.z + dir * .35);
+    phn.rotation.y = dir > 0 ? 0 : Math.PI;
+    scene.add(phn); p.userData.prop = phn;
+  }
+}
+
+/* ---------- 시뮬레이션 (시뮬 분 단위) ---------- */
+let quiet = true, simMin = 0, speed = 60, playing = true, systemOn = true, claims = 0, actSum = 0, actN = 0;
+const logEl = document.getElementById('log');
+const hhmm = (m) => { const t = 19 * 60 + Math.floor(m); return `${String(Math.floor(t / 60) % 24).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`; };
+function log(html) { const d = document.createElement('div'); d.innerHTML = `<b>${hhmm(simMin)}</b> ${html}`; logEl.prepend(d);
+  while (logEl.children.length > 120) logEl.lastChild.remove(); }
+
+function seatPerson(room, seatIdx, studyMin, hog) {
+  const p = makePerson(); p.position.copy(room.door);
+  const seat = room.seats[seatIdx];
+  moveTo(p, seat.clone().setY(0), 1.4, () => sitDown(p, room, seatIdx));
+  const bag = makeBag(); bag.position.copy(bagSpot(room, seatIdx)); bag.visible = false;
+  const items = [bag];
+  // 텀블러나 음료 컵 (70% 확률)
+  if (rnd2() < .7) {
+    const drink = makeDrink(), dir = Math.sign(room.tableZ - seat.z);
+    drink.position.set(seat.x - .24, TABLE_TOP, seat.z + dir * .56);
+    drink.visible = false; items.push(drink);
+  }
+  // 의자에 외투 걸치기 (40% 확률)
+  if (rnd2() < .4) {
+    const jkt = makeJacket(room, seatIdx);
+    jkt.visible = false; items.push(jkt);
+  }
+  room.people.push({ mesh: p, seat: seatIdx, until: simMin + studyMin, hog, bag, items, back: null });
+  setTimeout(() => items.forEach(it => (it.visible = true)), 1400 / Math.max(1, speed / 60));
+}
+function freeSeats(room) {
+  const used = new Set([...room.people.map(p => p.seat), ...room.bags.map(b => b.seat)]);
+  return room.seats.map((_, i) => i).filter(i => !used.has(i));
+}
+function arrive(room, n) {
+  const free = freeSeats(room);
+  for (let k = 0; k < Math.min(n, free.length); k++)
+    seatPerson(room, free[k], between(40, 150), rnd() < .55);
+}
+function leave(room, person) {
+  room.people.splice(room.people.indexOf(person), 1);
+  const m = person.mesh;
+  if (m.userData.prop) { scene.remove(m.userData.prop); m.userData.prop = null; }
+  setPose(m, 'walk', m.userData.phase);
+  moveTo(m, room.door, 1.2, () => removePerson(m));
+  if (person.hog) {   // 짐을 두고 나감 (알박기 또는 잠깐 외출)
+    const backIn = rnd() < .35 ? between(5, 25) : null;   // 35%는 30분 안에 돌아옴
+    (person.items || [person.bag]).forEach(it => {
+      room.bags.push({ mesh: it, seat: person.seat, back: backIn === null ? null : simMin + backIn });
+    });
+  } else { (person.items || [person.bag]).forEach(removeBag); }
+}
+function claim(room) {   // 초록 룸: 짐을 바구니로 옮기고 앉음
+  const n = room.bags.length;
+  room.bags.forEach((b, i) => moveTo(b.mesh, room.basket.clone().add(new THREE.Vector3((i % 3 - 1) * .18, .05 * i, 0)), 1.0));
+  room.bags = []; claims++; room.claimed++;
+  log(`<span style="color:${CSS.green}">${room.id}</span> 30분 넘게 비어 있던 짐 ${n}개를 바구니로 옮기고 사용 시작`);
+  setTimeout(() => arrive(room, 1 + Math.floor(rnd() * Math.min(3, room.cap / 2))), 400);
+}
+
+function initScenario() {
+  rooms.forEach((room, i) => {
+    if (i % 2 === 0 || rnd() < .2) {   // 절반 이상: 짐만 남은 룸
+      const k = 1 + Math.floor(rnd() * 3), free = freeSeats(room);
+      for (let j = 0; j < k; j++) { const b = makeBag(); b.position.copy(bagSpot(room, free[j]));
+        room.bags.push({ mesh: b, seat: free[j], back: rnd() < .3 ? between(5, 40) : null }); }
+      room.awaySince = -between(10, 70);
+    } else { arrive(room, 2 + Math.floor(rnd() * (room.cap - 2))); }
+  });
+}
+
+/* ---------- YOLO 판정 (room_logic.py 의 RoomTracker 와 같은 규칙, 시간 단위는 시뮬레이션 분) ---------- */
+class Tracker {
+  constructor(start = 0) { this.present = false; this.lastSeen = null; this.awaySince = start; this.runStart = null; }
+  update(person, now) {
+    if (person) {
+      this.lastSeen = now;
+      if (this.runStart === null) this.runStart = now;
+      if (!this.present && now - this.runStart >= ON_MIN) this.present = true;
+    } else {
+      this.runStart = null;
+      if (this.present && this.lastSeen !== null && now - this.lastSeen >= OFF_MIN) { this.present = false; this.awaySince = this.lastSeen; }
+    }
+  }
+  away(now) { return this.present ? 0 : Math.max(0, now - this.awaySince); }
+  state(now) { return this.present ? 'red' : (this.away(now) >= LIMIT ? 'green' : 'yellow'); }
+}
+const yolo = { enabled: !params.has('noyolo'), connected: false, ms: 0, fails: 0, rr: 0, fps: +(params.get('fps') || 10),
+               conf: params.get('conf') };
+const useYolo = () => yolo.enabled && yolo.connected;
+const ystEl = document.getElementById('yolo-st');
+function setConnected(v) {
+  if (v === yolo.connected) return paintBadge();
+  yolo.connected = v;
+  if (v) rooms.forEach(r => {   // 연결 순간의 상태에서 이어서 판정
+    r.tracker = new Tracker(r.awaySince); r.tracker.present = r.people.length > 0;
+    r.tracker.lastSeen = r.tracker.present ? simMin : null; r.yolo = null; });
+  if (!quiet) log(v ? 'YOLO 서버 연결됨: 신호등을 천장 카메라 YOLO 검출 결과로 판정' : 'YOLO 서버 미연결: 3D 좌표 기반 판정으로 대체');
+  paintBadge();
+}
+function paintBadge() {
+  ystEl.className = 'badge' + (useYolo() ? ' ok' : '');
+  ystEl.textContent = !yolo.connected ? 'YOLO 미연결 · 좌표 판정' : yolo.enabled ? `YOLO 연결됨 · ${Math.round(yolo.ms)}ms` : 'YOLO 연결됨 · 좌표 판정 중';
+}
+async function health() {
+  try { const r = await fetch('/health', { cache: 'no-store' }); const j = await r.json(); setConnected(!!j.ok); }
+  catch { setConnected(false); }
+}
+
+function stepSim(dMin) {
+  simMin += dMin;
+  rooms.forEach(room => {
+    room.people.slice().forEach(p => { if (simMin >= p.until) leave(room, p); });
+    room.bags.slice().forEach(b => {    // 짐 주인이 돌아옴
+      if (room.bags.includes(b) && b.back !== null && simMin >= b.back && room.state !== 'green') {
+        const mine = room.bags.filter(x => x.seat === b.seat);   // 같은 자리의 짐(가방·컵·외투)은 주인 한 명
+        room.bags = room.bags.filter(x => x.seat !== b.seat);
+        const p = makePerson(); p.position.copy(room.door);
+        moveTo(p, room.seats[b.seat].clone().setY(0), 1.2, () => sitDown(p, room, b.seat));
+        room.people.push({ mesh: p, seat: b.seat, until: simMin + between(30, 90), hog: rnd() < .5, bag: mine[0].mesh,
+          items: mine.map(x => x.mesh) });
+        log(`${room.id} 짐 주인이 ${Math.round(simMin - room.awaySince)}분 만에 돌아옴`);
+      }
+    });
+    const present = room.people.length > 0;
+    if (present) room.awaySince = simMin;
+    const prev = room.state;
+    if (useYolo() && room.tracker) {     // 카메라 YOLO 결과로 판정
+      room.away = room.tracker.away(simMin);
+      room.state = room.tracker.state(simMin);
+    } else {                             // 좌표 기반 (서버가 없을 때)
+      room.away = simMin - room.awaySince;
+      room.state = present ? 'red' : (room.away >= LIMIT ? 'green' : 'yellow');
+      if (!present && room.bags.length === 0) room.state = 'green';
+    }
+    if (prev !== room.state && systemOn && !quiet)
+      log(`<span style="color:${CSS[room.state]}">${room.id}</span> ${NAME[prev]} → ${NAME[room.state]}${room.state === 'green' && room.bags.length ? ' (짐만 남음)' : ''}`);
+    // 새 학생 도착
+    const want = rnd() < dMin * .045;
+    if (want && !present) {
+      if (room.bags.length === 0) arrive(room, 1 + Math.floor(rnd() * Math.min(4, room.cap - 1)));
+      else if (systemOn && room.state === 'green') claim(room);
+      else if (want && rnd() < .3) log(`${room.id} 앞에서 학생이 짐을 보고 돌아섬${systemOn ? ' (🟡 30분 미만)' : ' (언제부터 비었는지 모름)'}`);
+    }
+  });
+  const act = rooms.filter(r => r.people.length > 0).length / rooms.length;
+  actSum += act * dMin; actN += dMin;
+}
+
+/* ---------- 천장 카메라 렌더링 → YOLO 서버 ---------- */
+const camRenderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+camRenderer.setPixelRatio(1); camRenderer.setSize(CAM_W, CAM_H, false);
+camRenderer.shadowMap.enabled = true; camRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
+camRenderer.toneMapping = THREE.ACESFilmicToneMapping; camRenderer.toneMappingExposure = 1.15;
+function renderCam(room) {   // 색 바닥·탐지 박스 같은 표시물은 숨기고, 카메라에 실제로 보일 것만 그림
+  const vis = overlays.map(o => o.visible), op = camOpaque.map(m => m.opacity);
+  camOpaque.forEach(m => (m.opacity = m.userData.camOpacity));
+  overlays.forEach(o => (o.visible = false));
+  const bg = scene.background; scene.background = new THREE.Color(0x1b1d22);
+  camRenderer.render(scene, room.cctv);
+  scene.background = bg;
+  overlays.forEach((o, i) => (o.visible = vis[i]));
+  camOpaque.forEach((m, i) => (m.opacity = op[i]));
+  return camRenderer.domElement;
+}
+const camCanvas = document.getElementById('cam'), camCtx = camCanvas.getContext('2d');
+const frameCanvas = document.createElement('canvas'); frameCanvas.width = CAM_W; frameCanvas.height = CAM_H;
+const frameCtx = frameCanvas.getContext('2d');
+let selRoom = rooms[0];
+function selectRoom(r, moveView) {
+  selRoom = r;
+  frustumCam.position.copy(r.cctv.position); frustumCam.quaternion.copy(r.cctv.quaternion);
+  frustumCam.updateMatrixWorld(true); frustumHelper.update();
+  document.getElementById('cam-room').textContent = r.id;
+  roomsEl.querySelectorAll('.room').forEach((el, i) => el.classList.toggle('sel', rooms[i] === r));
+  rooms.forEach(x => x.label && x.label.classList.toggle('sel', x === r));
+  if (moveView) { controls.target.set(r.cx, 0, r.cz); camera.position.set(r.cx, 9, r.cz + (r.cz > 0 ? 8 : -8)); }
+  drawCam(r, null);
+}
+/* ---------- 실제 융합교육관 스터디룸 촬영 사진 (100% 실제 사람) ---------- */
+const REAL_PHOTO_LIST = [
+  { raw: './real_photos/원본_사진1.webp', yolo: './real_photos/사진1_11x.jpg', label: '남학생 엎드려 잠 (YOLO11x: 0.94)' },
+  { raw: './real_photos/원본_사진2.webp', yolo: './real_photos/사진2_11x.jpg', label: '남학생 엎드려 잠 (YOLO11x: 0.93)' },
+  { raw: './real_photos/원본_사진3.webp', yolo: './real_photos/사진3_11x.jpg', label: '여학생 엎드려 잠 (YOLO11x: 0.95)' },
+  { raw: './real_photos/원본_사진4.webp', yolo: './real_photos/사진4_11x.jpg', label: '여학생 엎드려 잠 (YOLO11x: 0.95)' },
+  { raw: './real_photos/원본_사진5.webp', yolo: './real_photos/사진5_11x.jpg', label: '여학생 엎드려 잠 (YOLO11x: 0.95)' },
+  { raw: './real_photos/원본_사진6.webp', yolo: './real_photos/사진6_11x.jpg', label: '여학생 엎드려 잠 (YOLO11x: 0.95)' },
+];
+let useRealPhotoFeed = false;
+let realPhotoIdx = 0;
+const loadedRealImages = REAL_PHOTO_LIST.map(item => {
+  const img = new Image();
+  img.src = item.yolo;
+  return { img, item };
+});
+
+function drawCam(room, j) {   // 카메라 화면 + YOLO 박스 + CCTV OSD
+  const g = camCtx, W = CAM_W, H = CAM_H;
+
+  // 100% 실제 사람 촬영 사진 모드인 경우
+  if (useRealPhotoFeed) {
+    const cur = loadedRealImages[realPhotoIdx % loadedRealImages.length];
+    if (cur.img.complete && cur.img.naturalWidth > 0) {
+      g.drawImage(cur.img, 0, 0, W, H);
+      g.fillStyle = 'rgba(15, 17, 21, 0.75)'; g.fillRect(0, 0, W, 42);
+      g.fillStyle = '#ff3b30'; g.beginPath(); g.arc(22, 21, 6, 0, Math.PI * 2); g.fill();
+      g.fillStyle = '#f8fafc'; g.font = 'bold 18px "Courier New", monospace';
+      g.fillText(`REC  ${room.id.toUpperCase()} (실제 융합교육관 촬영)  |  2026-10-15 ${hhmm(simMin)}:00`, 38, 26);
+      g.fillStyle = '#2ec466'; g.beginPath(); g.arc(W - 24, 21, 10, 0, Math.PI * 2); g.fill();
+
+      g.fillStyle = 'rgba(0,0,0,0.65)'; g.fillRect(0, H - 42, W, 42);
+      g.fillStyle = '#f8fafc'; g.font = 'bold 18px Malgun Gothic';
+      g.fillText(`[실제 사람 관측 ${realPhotoIdx + 1}/6] ${cur.item.label} (CCTV 화면 클릭 시 다음 사진)`, 16, H - 15);
+      const info = document.getElementById('cam-info');
+      info.textContent = `실제 융합교육관 스터디룸 직접 촬영 사진 (실물 학생 검출 신뢰도 90% 이상)`;
+      return;
+    }
+  }
+
+  g.drawImage(frameCanvas, 0, 0);
+
+  // 실제 보안 CCTV OSD (On-Screen Display)
+  g.fillStyle = 'rgba(15, 17, 21, 0.75)'; g.fillRect(0, 0, W, 42);
+  g.fillStyle = '#ff3b30'; g.beginPath(); g.arc(22, 21, 6, 0, Math.PI * 2); g.fill();
+  g.fillStyle = '#f8fafc'; g.font = 'bold 18px "Courier New", monospace';
+  g.fillText(`REC  ${room.id.toUpperCase()}  |  2026-10-15 ${hhmm(simMin)}:00`, 38, 26);
+
+  const st = systemOn ? room.state : null, col = st ? CSS[st] : '#9aa3b2';
+  document.getElementById('cam-state').innerHTML = st ? `<span style="color:${col}">● ${NAME[st]}</span>` : '<span style="color:#888">● 꺼짐</span>';
+  const info = document.getElementById('cam-info');
+  if (!j) {
+    g.fillStyle = 'rgba(0,0,0,.6)'; g.fillRect(0, H - 48, W, 48);
+    g.fillStyle = '#e8eaf0'; g.font = 'bold 22px Malgun Gothic';
+    g.fillText(yolo.connected ? '좌표 기반 판정 중 (YOLO 박스 없음)' : 'YOLO 미연결 · 카메라 화면만 표시', 16, H - 16);
+    info.textContent = `3D 좌표 기준 감지 영역 안 사람 ${room.detected}명`;
+    return;
+  }
+  const line = (b, c, w, dash) => { g.setLineDash(dash || []); g.strokeStyle = c; g.lineWidth = w; g.strokeRect(b[0], b[1], b[2] - b[0], b[3] - b[1]); g.setLineDash([]); };
+  const tag = (x, y, text, c, fg = '#111') => { g.font = 'bold 20px Malgun Gothic'; const w = g.measureText(text).width + 12;
+    y = Math.max(26, y); g.fillStyle = c; g.fillRect(x, y - 26, w, 26); g.fillStyle = fg; g.fillText(text, x + 6, y - 6); };
+  if (j.zone) {
+    line(j.zone, col, 5, j.zone_source === 'full' ? [16, 8] : null);
+    if (j.zone_source === 'full') tag(j.zone[0] + 8, j.zone[1] + 36, '테이블 미검출 → 화면 전체 감지', col);
+    else tag(j.zone[0], j.zone[1], `감지 영역 (+30%)`, col);
+  }
+  if (j.table) { line(j.table, '#ffffff', 3); tag(j.table[0], j.table[3] + 26, `테이블 ${j.table[4].toFixed(2)}${j.table_seen ? '' : ' (이전 위치)'}`, '#ffffff'); }
+  j.persons.forEach(p => { const c = p.inside ? '#ffffff' : '#8d939e';
+    line(p.box, c, 4); tag(p.box[0], p.box[1], `사람 ${p.conf.toFixed(2)}`, c); });
+
+  // 우측 상단 상태 인디케이터
+  g.fillStyle = col; g.beginPath(); g.arc(W - 24, 21, 10, 0, Math.PI * 2); g.fill();
+  info.textContent = `${j.ms}ms · person_conf ${j.person_conf} · ${j.zone_source === 'table' ? '테이블 감지 영역' : '화면 전체 감지'} · 실제 인원 ${room.people.length}명`;
+}
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+function jpegBytes(canvas) {
+  const s = atob(canvas.toDataURL('image/jpeg', .9).split(',')[1]), b = new Uint8Array(s.length);
+  for (let i = 0; i < s.length; i++) b[i] = s.charCodeAt(i);
+  return b;
+}
+let camTick = 0;
+async function camLoop() {
+  for (;;) {
+    const t0 = performance.now();
+    const server = useYolo();
+    // 선택한 룸은 3번 중 2번, 나머지 룸은 돌아가며 한 번씩
+    const room = !server || camTick++ % 3 !== 2 ? selRoom : rooms[yolo.rr++ % rooms.length];
+    const at = simMin, src = renderCam(room), tR = performance.now() - t0;
+    if (room === selRoom) frameCtx.drawImage(src, 0, 0);
+    let j = null;
+    if (server) {
+      try {
+        const blob = jpegBytes(src);   // toBlob 은 브라우저에 따라 1초 가까이 늦어져서 toDataURL 사용
+        const q = `room=${encodeURIComponent(room.id)}${yolo.conf ? `&person_conf=${yolo.conf}` : ''}&t=${Math.round(tR)},${Math.round(performance.now() - t0)},${Math.round(t0 - (yolo.lastT || t0))}`; yolo.lastT = t0;
+        const res = await fetch(`/detect?${q}`, { method: 'POST', body: blob, headers: { 'Content-Type': 'image/jpeg' } });
+        j = await res.json(); if (j.error) throw new Error(j.error);
+        room.yolo = j; yolo.fails = 0; yolo.ms = yolo.ms * .8 + (performance.now() - t0) * .2;
+        if (room.tracker) room.tracker.update(j.inside_count > 0, at);
+      } catch (e) { j = null; if (++yolo.fails >= 3) setConnected(false); }
+    }
+    if (room === selRoom) drawCam(room, j);
+    await sleep(Math.max(10, 1000 / (server ? yolo.fps : 4) - (performance.now() - t0)));
+  }
+}
+
+/* ---------- 화면 갱신 ---------- */
+const roomsEl = document.getElementById('rooms');
+roomsEl.innerHTML = rooms.map((r, i) => `<div class="room" data-i="${i}"><span class="dot"></span>${r.id}<span class="t"></span></div>`).join('');
+roomsEl.querySelectorAll('.room').forEach(el => el.onclick = () => selectRoom(rooms[+el.dataset.i], true));
+const labelsEl = document.getElementById('labels');
+rooms.forEach(r => { r.label = document.createElement('div'); r.label.className = 'label'; labelsEl.appendChild(r.label); });
+
+function paint() {
+  const sys = systemOn;
+  rooms.forEach((r, i) => {
+    const st = sys ? r.state : null;
+    Object.entries(r.lights).forEach(([k, m]) => (m.emissiveIntensity = st === k ? 2.2 : 0.04));
+    r.tint.material.color.setHex(st ? COLORS[st] : 0x555555); r.tint.material.opacity = st ? .2 : .08;
+    r.zoneHelper.material.color.setHex(st ? COLORS[st] : 0x888888);
+    const el = roomsEl.children[i];
+    el.querySelector('.dot').style.background = st ? CSS[st] : '#555';
+    el.querySelector('.t').textContent = !sys ? '—' : st === 'red' ? `${r.people.length}명` :
+      st === 'yellow' ? `${Math.floor(r.away)}분 / 30` : (r.bags.length ? `짐 ${r.bags.length}개` : '빈 룸');
+    const v = new THREE.Vector3(r.cx, 2.8, r.cz).project(camera);
+    const w = renderer.domElement.clientWidth, h = renderer.domElement.clientHeight;
+    r.label.style.left = `${(v.x * .5 + .5) * w}px`; r.label.style.top = `${(-v.y * .5 + .5) * h}px`;
+    r.label.style.display = v.z < 1 ? 'block' : 'none';
+    r.label.style.color = st ? CSS[st] : '#aaa';
+    const n = useYolo() ? (r.yolo ? r.yolo.inside_count : '?') : r.detected;
+    r.label.textContent = `${r.id}${sys && st === 'yellow' ? ` · ${Math.floor(r.away)}분` : ''}${showBoxes ? ` · 사람 ${n}명 감지${useYolo() ? '(YOLO)' : ''}` : ''}`;
+  });
+  frustumHelper.visible = true;
+  document.getElementById('clock').textContent = hhmm(simMin);
+  const act = rooms.filter(r => r.people.length > 0).length / rooms.length;
+  document.getElementById('k-act').textContent = `${Math.round(act * 100)}%`;
+  document.getElementById('k-avg').textContent = actN ? `${Math.round(actSum / actN * 100)}%` : '-';
+  document.getElementById('k-hog').textContent = `${rooms.filter(r => !r.people.length && r.bags.length && r.away >= LIMIT).length}개`;
+  document.getElementById('k-claim').textContent = claims;
+  if (board.style.display === 'block') drawBoard();
+  paintBadge();
+}
+
+/* ---------- 1층 현황판 ---------- */
+const board = document.getElementById('board');
+function drawBoard() {
+  const free = rooms.filter(r => r.state === 'green').length;
+  board.innerHTML = `<h2>융합교육관 스터디룸 현황 · ${hhmm(simMin)}</h2>
+    <div class="sub">지금 바로 쓸 수 있는 룸 <b style="color:${CSS.green}">${free}개</b> / 14개 · 🟢 룸에 짐이 있으면 회색 바구니로 옮기고 사용하세요</div>
+    ${['3층', '4층'].map(f => `<h3 style="margin:18px 0 0">${f}</h3><div class="grid">${rooms.filter(r => r.id.startsWith(f)).map(r =>
+      `<div class="card" style="border-color:${CSS[r.state]}"><b>${r.id}</b><div>${NAME[r.state]} · ${
+        r.state === 'red' ? `${r.people.length}/${r.cap}명` : r.state === 'yellow' ? `${Math.floor(r.away)}분째 비어 있음` : (r.bags.length ? '짐 정리 후 사용' : '빈 룸')}</div></div>`).join('')}</div>`).join('')}`;
+}
+
+/* ---------- 컨트롤 ---------- */
+document.getElementById('b-play').onclick = (e) => { playing = !playing; e.target.textContent = playing ? '⏸ 일시정지' : '▶ 재생'; e.target.classList.toggle('on', playing); };
+document.querySelectorAll('[data-s]').forEach(b => b.onclick = () => {
+  speed = +b.dataset.s; document.querySelectorAll('[data-s]').forEach(x => x.classList.toggle('on', x === b)); });
+document.getElementById('b-system').onclick = (e) => { systemOn = !systemOn;
+  e.target.textContent = systemOn ? '감지 시스템 켜짐' : '감지 시스템 꺼짐 (기존 방식)'; e.target.classList.toggle('on', systemOn);
+  log(systemOn ? '감지 시스템 켬: 30분 규칙을 문 앞 신호등으로 확인' : '감지 시스템 끔: 학생은 언제부터 비었는지 알 수 없음'); };
+document.getElementById('b-board').onclick = (e) => { const on = board.style.display !== 'block';
+  board.style.display = on ? 'block' : 'none'; e.target.classList.toggle('on', on); if (on) drawBoard(); };
+document.getElementById('b-boxes').onclick = (e) => { showBoxes = !showBoxes; e.target.classList.toggle('on', showBoxes); };
+document.getElementById('b-mode').onclick = (e) => {
+  yolo.enabled = !yolo.enabled; e.target.classList.toggle('on', yolo.enabled);
+  e.target.textContent = yolo.enabled ? '판정: YOLO 카메라' : '판정: 3D 좌표';
+  if (yolo.enabled && yolo.connected) rooms.forEach(r => { r.tracker = new Tracker(r.awaySince);
+    r.tracker.present = r.people.length > 0; r.tracker.lastSeen = r.tracker.present ? simMin : null; });
+  log(yolo.enabled ? '판정 방식: 천장 카메라 YOLO 검출 (서버가 없으면 좌표 기반)' : '판정 방식: 3D 좌표 기반');
+  paintBadge(); };
+document.getElementById('b-real').onclick = (e) => {
+  useRealAssets = !useRealAssets;
+  e.target.classList.toggle('on', useRealAssets);
+  e.target.textContent = useRealAssets ? '실사 PBR 3D 에셋' : '절차적 모델 (Low-poly)';
+  applyRealChairs();
+  applyRealPeople();
+  allPeople.forEach(p => {
+    if (p.userData.realModel) {
+      const isSleep = p.userData.pose === 'sleep';
+      p.userData.realModel.visible = useRealAssets && !isSleep;
+      if (p.userData.procModel) p.userData.procModel.visible = !useRealAssets || isSleep;
+    } else if (p.userData.procModel) {
+      p.userData.procModel.visible = true;
+    }
+  });
+  log(useRealAssets ? '실사 PBR 3D 에셋 모드 켬 (실제 사람 캐릭터 및 PBR 가구 적용)' : '절차적 로우폴리 모드로 전환');
+};
+const bCamMode = document.getElementById('b-cam-mode');
+let camModeIdx = 0;
+bCamMode.onclick = () => {
+  camModeIdx = (camModeIdx + 1) % CAM_MODES.length;
+  const target = CAM_MODES[camModeIdx];
+  bCamMode.textContent = target.label;
+  applyCamMode(target.id);
+  drawCam(selRoom, null);
+  log(`카메라 구도 변경: ${target.label}`);
+};
+const bRealPhoto = document.getElementById('b-real-photo');
+bRealPhoto.onclick = (e) => {
+  useRealPhotoFeed = !useRealPhotoFeed;
+  bRealPhoto.classList.toggle('on', useRealPhotoFeed);
+  bRealPhoto.textContent = useRealPhotoFeed ? '실제 촬영 현장 사진: 켜짐' : '실제 촬영 현장 사진 (100% 실사)';
+  drawCam(selRoom, null);
+  log(useRealPhotoFeed ? 'CCTV 화면: 융합교육관에서 실제 촬영한 100% 실물 학생 사진으로 전환' : 'CCTV 화면: 3D 디지털 트윈 렌더링으로 전환');
+};
+camCanvas.style.cursor = 'pointer';
+camCanvas.onclick = () => {
+  if (useRealPhotoFeed) {
+    realPhotoIdx = (realPhotoIdx + 1) % loadedRealImages.length;
+    drawCam(selRoom, null);
+  }
+};
+
+// 외부 .glb/.gltf 실사 모델 실시간 드래그 앤 드롭 로더
+window.addEventListener('dragover', (e) => e.preventDefault());
+window.addEventListener('drop', (e) => {
+  e.preventDefault();
+  const file = e.dataTransfer.files[0];
+  if (file && (file.name.endsWith('.glb') || file.name.endsWith('.gltf'))) {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      gltfLoader.parse(ev.target.result, '', (gltf) => {
+        const obj = gltf.scene;
+        obj.traverse(m => { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } });
+        const b3 = new THREE.Box3().setFromObject(obj);
+        const sz = b3.getSize(new THREE.Vector3());
+        const maxDim = Math.max(sz.x, sz.y, sz.z);
+        if (maxDim > 2.0) obj.scale.setScalar(1.5 / maxDim);
+        if (selRoom) {
+          obj.position.copy(selRoom.tableMesh.position).add(new THREE.Vector3(0, 0.4, 0));
+          selRoom.grp.add(obj);
+          log(`<span style="color:#6f9be0">외부 3D 에셋 로드 완료:</span> ${file.name} (${selRoom.id} 배치)`);
+        } else {
+          scene.add(obj);
+          log(`<span style="color:#6f9be0">외부 3D 에셋 로드 완료:</span> ${file.name}`);
+        }
+      });
+    };
+    reader.readAsArrayBuffer(file);
+  }
+});
+// 3D 화면에서 룸을 클릭하면 그 룸 카메라를 보여 줌 (드래그 회전과 구분)
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(); let downAt = null;
+renderer.domElement.addEventListener('pointerdown', e => (downAt = [e.clientX, e.clientY]));
+renderer.domElement.addEventListener('pointerup', e => {
+  if (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 5) return;
+  const rc = renderer.domElement.getBoundingClientRect();
+  ndc.set((e.clientX - rc.left) / rc.width * 2 - 1, -(e.clientY - rc.top) / rc.height * 2 + 1);
+  ray.setFromCamera(ndc, camera);
+  const hit = ray.intersectObjects(rooms.map(r => r.floor), false)[0];
+  if (hit) selectRoom(hit.object.userData.room, false);
+});
+
+/* ---------- 측정 모드 (?eval=1): 정해진 장면을 카메라마다 렌더해 서버에 저장 ---------- */
+const _v = new THREE.Vector3(), _c = new THREE.Vector3();
+function projBox(obj, cam) {   // 물체 꼭짓점을 카메라 화면에 투영한 2D 박스 (화면 밖 포함) + 화면 안 비율
+  cam.updateMatrixWorld(true); cam.matrixWorldInverse.copy(cam.matrixWorld).invert();
+  obj.updateMatrixWorld(true);
+  let x1 = 1e9, y1 = 1e9, x2 = -1e9, y2 = -1e9, n = 0;
+  obj.traverse(m => {
+    if (!m.isMesh || !m.visible) return;
+    const pos = m.geometry.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      _v.fromBufferAttribute(pos, i).applyMatrix4(m.matrixWorld);
+      if (_c.copy(_v).applyMatrix4(cam.matrixWorldInverse).z > -0.05) continue;
+      _v.project(cam);
+      const x = (_v.x + 1) / 2 * CAM_W, y = (1 - _v.y) / 2 * CAM_H;
+      x1 = Math.min(x1, x); y1 = Math.min(y1, y); x2 = Math.max(x2, x); y2 = Math.max(y2, y); n++;
+    }
+  });
+  if (!n) return null;
+  const cx1 = Math.max(0, x1), cy1 = Math.max(0, y1), cx2 = Math.min(CAM_W, x2), cy2 = Math.min(CAM_H, y2);
+  const full = (x2 - x1) * (y2 - y1), clip = Math.max(0, cx2 - cx1) * Math.max(0, cy2 - cy1);
+  return { box: [cx1, cy1, cx2, cy2].map(v => Math.round(v)), vis: full > 0 ? clip / full : 0 };
+}
+function clearAll() {
+  [...allPeople].forEach(removePerson); [...allBags].forEach(removeBag);
+  rooms.forEach(r => { r.people = []; r.bags = []; });
+}
+async function runEval(trials) {
+  const status = (t) => (document.getElementById('cam-info').textContent = t);
+  for (let t = 0; t < trials; t++) {
+    clearAll();
+    rooms.forEach((room, i) => {
+      const order = room.seats.map((_, k) => k).sort(() => rnd2() - .5);
+      const occupied = (i + t) % 4 !== 0;                // 약 4분의 3은 사람이 있는 룸, 나머지는 짐만 있는 룸
+      const n = occupied ? 1 + Math.floor(rnd2() * room.cap) : 0;
+      order.forEach((s, k) => {
+        if (k < n) {
+          const p = makePerson(); sitDown(p, room, s, rnd2() < .4 ? 'sleep' : 'study');
+          room.people.push({ mesh: p, seat: s });
+          if (rnd2() < .25) { const b = makeBag(); b.position.copy(bagSpot(room, s)); }
+        } else if (rnd2() < .3) { const b = makeBag(); b.position.copy(bagSpot(room, s)); }
+      });
+      if (occupied && rnd2() < .6) {                      // 룸 안을 걷는 사람
+        const p = makePerson(), sx = room.grp.scale.x, side = rnd2() < .5;
+        const x = side ? room.cx + (rnd2() * 2 - 1) * (RW / 2 - .6) * sx : room.cx + (rnd2() < .5 ? -1 : 1) * (RW / 2 - .45) * sx;
+        const z = side ? room.cz + room.facing * (1.25 + rnd2() * .5) : room.cz + (rnd2() * 2 - 1) * 1.2;
+        p.position.set(x, 0, z); p.rotation.y = rnd2() * Math.PI * 2; setPose(p, 'walk', rnd2() * 6);
+        room.people.push({ mesh: p, seat: -1 });
+      }
+    });
+    scene.updateMatrixWorld(true);
+    for (let i = 0; i < rooms.length; i++) {
+      const room = rooms[i], src = renderCam(room);
+      const gt = { trial: t, room: room.id, cap: room.cap, glass: room.glass,
+        table: projBox(room.tableMesh, room.cctv),
+        persons: room.people.map(p => ({ pose: p.mesh.userData.pose, ...projBox(p.mesh, room.cctv),
+          faceCam: Math.sin(p.mesh.rotation.y) * (room.cctv.position.x - p.mesh.position.x)    // 얼굴이 카메라 쪽인가
+                 + Math.cos(p.mesh.rotation.y) * (room.cctv.position.z - p.mesh.position.z) > 0 })) };
+      await fetch('/debug/capture', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: `t${t}_r${String(i).padStart(2, '0')}`, image: src.toDataURL('image/jpeg', .9), gt }) });
+      status(`측정용 장면 저장 중 ${t + 1}/${trials} · ${room.id}`);
+    }
+  }
+  await fetch('/debug/done', { method: 'POST', body: JSON.stringify({ trials, rooms: rooms.length }) });
+  status('측정용 장면 저장 완료');
+}
+
+/* ---------- 루프 ---------- */
+function resize() { const w = view.clientWidth, h = view.clientHeight; renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+addEventListener('resize', resize); resize();
+let last = performance.now(), acc = 0, paintAcc = 0;
+function loop(now) {
+  const dt = Math.min(.1, (now - last) / 1000); last = now;
+  personMixers.forEach(m => m.update(dt));
+  if (!EVAL && playing && simMin < 180) { acc += dt * speed / 60; while (acc >= .25) { stepSim(.25); acc -= .25; } }
+  movers.forEach(o => { const u = o.userData; u.t += dt; const k = Math.min(1, u.t / u.dur);
+    o.position.lerpVectors(u.from, u.to, k * k * (3 - 2 * k));
+    if (u.rig) { u.phase += dt * 9; setPose(o, 'walk', u.phase); }
+    if (k >= 1) { movers.delete(o); if (u.rig) setPose(o, 'stand'); u.done && u.done(); } });
+  paintAcc += dt; if (paintAcc > .15) { paint(); paintAcc = 0; }
+  updateBoxes();
+  controls.update(); renderer.render(scene, camera); requestAnimationFrame(loop);
+}
+selectRoom(rooms[0], false);
+if (EVAL) {
+  quiet = false; log('측정 모드: 정해진 장면을 룸마다 렌더해 저장합니다');
+  runEval(+(params.get('trials') || 8));
+} else {
+  initScenario(); stepSim(0); quiet = false; log('시뮬레이션 시작: 저녁 7시, 절반 이상의 룸에 짐만 남아 있음');
+  if (yolo.enabled) { health(); setInterval(() => { if (!yolo.connected) health(); }, 3000); }
+  camLoop();
+  if (params.has('selfshot')) setTimeout(selfShot, +params.get('selfshot') * 1000);   // 점검용 (서버 --capture-dir 필요)
+}
+requestAnimationFrame(loop);
+async function selfShot() {   // 3D 화면에서 룸을 클릭해 선택 → 3D 화면·카메라 창·상태를 서버에 저장
+  const target = rooms[+(params.get('room') || 4)];
+  const v = new THREE.Vector3(target.cx + .8, 0, target.cz + .8).project(camera), rc = renderer.domElement.getBoundingClientRect();
+  const x = rc.left + (v.x + 1) / 2 * rc.width, y = rc.top + (1 - v.y) / 2 * rc.height;
+  renderer.domElement.dispatchEvent(new PointerEvent('pointerdown', { clientX: x, clientY: y }));
+  renderer.domElement.dispatchEvent(new PointerEvent('pointerup', { clientX: x, clientY: y }));
+  await sleep(4000);
+  const state = { clicked: target.id, selected: selRoom.id, clock: hhmm(simMin), badge: ystEl.textContent,
+    camInfo: document.getElementById('cam-info').textContent,
+    rooms: rooms.map(r => ({ id: r.id, state: r.state, away: Math.round(r.away), people: r.people.length,
+      yoloInside: r.yolo ? r.yolo.inside_count : null, zone: r.yolo ? r.yolo.zone_source : null })),
+    log: [...logEl.children].slice(0, 15).map(d => d.textContent) };
+  const post = (name, image) => fetch('/debug/capture', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, image, gt: state }) });
+  renderer.render(scene, camera);
+  const main = renderer.domElement.toDataURL('image/jpeg', .85);
+  await post('selfshot_main', main);
+  await post('selfshot_cam', camCanvas.toDataURL('image/jpeg', .85));
+  await fetch('/debug/done', { method: 'POST', body: '{}' });
+}
+</script>
+</body>
+</html>
