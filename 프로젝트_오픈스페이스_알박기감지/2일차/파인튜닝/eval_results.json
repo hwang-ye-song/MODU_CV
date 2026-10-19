@@ -1,0 +1,244 @@
+{
+  "yolo11s (원본)": {
+    "1cha_table": {
+      "correct": 0.9465648854961832,
+      "detected": 0.9465648854961832,
+      "conf": 0.35084387539855894,
+      "iou": 0.7584773042522288
+    },
+    "webcam_table": {
+      "correct": 0.0,
+      "detected": 0.0,
+      "conf": 0.0,
+      "iou": 0.0
+    },
+    "sleep_035": 0.05952380952380952,
+    "webcam_items": {
+      "person": 1.0,
+      "laptop": 1.0,
+      "cell phone": 0.6944444444444444,
+      "mouse": 0.0,
+      "backpack": 0.8888888888888888
+    }
+  },
+  "yolo11s (테이블 파인튜닝)": {
+    "1cha_table": {
+      "correct": 1.0,
+      "detected": 1.0,
+      "conf": 0.7858991611549873,
+      "iou": 0.8478193974535154
+    },
+    "webcam_table": {
+      "correct": 1.0,
+      "detected": 1.0,
+      "conf": 0.7234869367546506,
+      "iou": 0.8718860468960288
+    },
+    "sleep_035": 0.0,
+    "webcam_items": {
+      "person": 0.675925925925926,
+      "laptop": 0.9629629629629629,
+      "cell phone": 0.5138888888888888,
+      "mouse": 1.0,
+      "backpack": 0.1388888888888889
+    }
+  },
+  "yolo11s (v2 백본 고정)": {
+    "1cha_table": {
+      "correct": 1.0,
+      "detected": 1.0,
+      "conf": 0.9540969096977292,
+      "iou": 0.9643703436261112
+    },
+    "webcam_table": {
+      "correct": 1.0,
+      "detected": 1.0,
+      "conf": 0.9481564727094438,
+      "iou": 0.9587122147484425
+    },
+    "sleep_035": 1.0,
+    "webcam_items": {
+      "person": 1.0,
+      "laptop": 1.0,
+      "cell phone": 1.0,
+      "mouse": 1.0,
+      "backpack": 0.25
+    }
+  },
+  "yolo11s (v2 전체 학습)": {
+    "1cha_table": {
+      "correct": 1.0,
+      "detected": 1.0,
+      "conf": 0.9565727738023714,
+      "iou": 0.9579619294025915
+    },
+    "webcam_table": {
+      "correct": 1.0,
+      "detected": 1.0,
+      "conf": 0.9410577416419983,
+      "iou": 0.9353434764987804
+    },
+    "sleep_035": 0.9880952380952381,
+    "webcam_items": {
+      "person": 1.0,
+      "laptop": 1.0,
+      "cell phone": 1.0,
+      "mouse": 1.0,
+      "backpack": 1.0
+    }
+  },
+  "yolo26s (v2)": {
+    "1cha_table": {
+      "correct": 1.0,
+      "detected": 1.0,
+      "conf": 0.9503040818767693,
+      "iou": 0.9764405731802089
+    },
+    "webcam_table": {
+      "correct": 1.0,
+      "detected": 1.0,
+      "conf": 0.923871323466301,
+      "iou": 0.9545792982370787
+    },
+    "sleep_035": 1.0,
+    "webcam_items": {
+      "person": 1.0,
+      "laptop": 1.0,
+      "cell phone": 1.0,
+      "mouse": 1.0,
+      "backpack": 0.0
+    }
+  },
+  "yolo26m (v2)": {
+    "1cha_table": {
+      "correct": 1.0,
+      "detected": 1.0,
+      "conf": 0.8209720749891442,
+      "iou": 0.9038184911841011
+    },
+    "webcam_table": {
+      "correct": 1.0,
+      "detected": 1.0,
+      "conf": 0.7776355859306123,
+      "iou": 0.8676890783331137
+    },
+    "sleep_035": 1.0,
+    "webcam_items": {
+      "person": 1.0,
+      "laptop": 1.0,
+      "cell phone": 1.0,
+      "mouse": 1.0,
+      "backpack": 1.0
+    }
+  },
+  "yolo26l (v2)": {
+    "1cha_table": {
+      "correct": 1.0,
+      "detected": 1.0,
+      "conf": 0.9297847333755201,
+      "iou": 0.9594573689870727
+    },
+    "webcam_table": {
+      "correct": 1.0,
+      "detected": 1.0,
+      "conf": 0.9175051086478763,
+      "iou": 0.9261713719756322
+    },
+    "sleep_035": 1.0,
+    "webcam_items": {
+      "person": 1.0,
+      "laptop": 1.0,
+      "cell phone": 1.0,
+      "mouse": 1.0,
+      "backpack": 0.9166666666666666
+    }
+  },
+  "yolo26s (원본)": {
+    "1cha_table": {
+      "correct": 0.015267175572519083,
+      "detected": 0.015267175572519083,
+      "conf": 0.27280640602111816,
+      "iou": 0.7488820404931464
+    },
+    "webcam_table": {
+      "correct": 0.0,
+      "detected": 0.0,
+      "conf": 0.0,
+      "iou": 0.0
+    },
+    "sleep_035": 0.9285714285714286,
+    "webcam_items": {
+      "person": 1.0,
+      "laptop": 1.0,
+      "cell phone": 1.0,
+      "mouse": 0.7777777777777778,
+      "backpack": 1.0
+    }
+  },
+  "yolo11l": {
+    "1cha_table": {
+      "correct": 0.9389312977099237,
+      "detected": 0.9389312977099237,
+      "conf": 0.47789732130562385,
+      "iou": 0.8916500648394616
+    },
+    "webcam_table": {
+      "correct": 1.0,
+      "detected": 1.0,
+      "conf": 0.44397903482119244,
+      "iou": 0.9566390710068566
+    },
+    "sleep_035": 0.30952380952380953,
+    "webcam_items": {
+      "person": 1.0,
+      "laptop": 1.0,
+      "cell phone": 1.0,
+      "mouse": 1.0,
+      "backpack": 1.0
+    }
+  },
+  "yolov9s": {
+    "1cha_table": {
+      "correct": 0.29770992366412213,
+      "detected": 0.29770992366412213,
+      "conf": 0.29787409611237353,
+      "iou": 0.8405829030568815
+    },
+    "webcam_table": {
+      "correct": 0.9166666666666666,
+      "detected": 0.9166666666666666,
+      "conf": 0.31160167130556976,
+      "iou": 0.8547075201299148
+    },
+    "sleep_035": 0.023809523809523808,
+    "webcam_items": {
+      "person": 1.0,
+      "laptop": 1.0,
+      "cell phone": 1.0,
+      "mouse": 0.9722222222222222,
+      "backpack": 0.2777777777777778
+    }
+  },
+  "yolov10s": {
+    "1cha_table": {
+      "correct": 0.9312977099236641,
+      "detected": 0.9312977099236641,
+      "conf": 0.47042809719922113,
+      "iou": 0.8588877889955302
+    },
+    "webcam_table": {
+      "correct": 0.08333333333333333,
+      "detected": 0.08333333333333333,
+      "conf": 0.26695992549260456,
+      "iou": 0.853105629209114
+    },
+    "sleep_035": 0.9761904761904762,
+    "webcam_items": {
+      "person": 1.0,
+      "laptop": 1.0,
+      "cell phone": 1.0,
+      "mouse": 1.0,
+      "backpack": 1.0
+    }
+  }
+}
