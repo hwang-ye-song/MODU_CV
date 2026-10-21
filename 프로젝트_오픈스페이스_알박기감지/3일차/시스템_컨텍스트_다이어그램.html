@@ -1,0 +1,127 @@
+<title>알박기 감지 시스템 컨텍스트</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<style>
+/* 레이아웃: 16:9 슬라이드 한 장. 위 = 제목, 가운데 = 개발 범위 안의 시스템 한 상자와 둘레 요소, 아래 = 검토 후 제외한 안, 읽는 포인트·범례·가정 (참고 PDF 예시 2 양식) */
+:root {
+  --bg: #f6f5f0; --ink: #1f2a2c; --sub: #6b7470; --teal: #0f7b6c; --dark: #1b363b; --on-dark: #ffffff; --on-dark-sub: #c9d6d2;
+  --box: #fbfbf8; --box-line: #a3b5ae; --frame: #9fbfb2; --rule: #d3d6cf; --red: #c8323f; --chip: #efeee8;
+  --font: 'Noto Sans KR', 'Pretendard', 'Malgun Gothic', sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #131a1b; --ink: #e7ecea; --sub: #9aa6a2; --teal: #4fc3ad; --dark: #2c5a60; --on-dark: #ffffff; --on-dark-sub: #d3e2de;
+  --box: #1b2425; --box-line: #4d625c; --frame: #4f7a6d; --rule: #2c3638; --red: #ff6b78; --chip: #1a2223; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #131a1b; --ink: #e7ecea; --sub: #9aa6a2; --teal: #4fc3ad; --dark: #2c5a60; --on-dark: #ffffff; --on-dark-sub: #d3e2de;
+  --box: #1b2425; --box-line: #4d625c; --frame: #4f7a6d; --rule: #2c3638; --red: #ff6b78; --chip: #1a2223; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font); margin: 0; }
+.wrap { max-width: 1456px; margin: 0 auto; padding: 16px; }
+.scroll { overflow-x: auto; }
+svg { display: block; width: 100%; min-width: 900px; height: auto; }
+</style>
+
+<div class="wrap">
+  <div class="scroll">
+  <svg viewBox="0 0 1456 819" role="img" font-family="Noto Sans KR, Pretendard, Malgun Gothic, sans-serif"
+       aria-label="알박기 감지 시스템 컨텍스트 다이어그램. 가운데 개발 범위 안에 알박기 감지 시스템이 있다. 학교 운영 담당자는 감지 영역과 기준을 설정하고 룸별 상태와 이용 통계를 받는다. 룸 카메라는 1초마다 룸 사진을 보내고, 시스템은 색이 바뀔 때 문 위 LED 표시등에 상태 색을 보낸다. 학생은 카메라에 찍히면 재석이 되고 LED 색을 보고 룸을 고른다. 기존 CCTV, 룸별 라즈베리파이, 클라우드 GPU는 검토 후 제외했다.">
+    <defs>
+      <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" style="fill:var(--teal)"/>
+      </marker>
+    </defs>
+    <rect width="1456" height="819" style="fill:var(--bg)"/>
+
+    <!-- 제목 -->
+    <text x="87" y="104" font-size="40" font-weight="800" style="fill:var(--teal)">시스템 컨텍스트</text>
+    <text x="87" y="156" font-size="26" style="fill:var(--sub)">알박기 감지 시스템</text>
+    <text x="87" y="194" font-size="17" style="fill:var(--sub)">룸 카메라 사진으로 재석을 판정해, 문 위 LED 표시등과 학교 관리 화면에 알립니다.</text>
+
+    <!-- 개발 범위 -->
+    <text x="640" y="246" font-size="15" text-anchor="middle" style="fill:var(--sub)">개발 범위</text>
+    <rect x="466" y="260" width="348" height="250" rx="8" fill="none" stroke-width="1.5" stroke-dasharray="6 5" style="stroke:var(--frame)"/>
+    <rect x="480" y="300" width="320" height="170" rx="6" style="fill:var(--dark)"/>
+    <text x="640" y="370" font-size="25" font-weight="700" text-anchor="middle" style="fill:var(--on-dark)">알박기 감지 시스템</text>
+    <text x="640" y="404" font-size="15" text-anchor="middle" style="fill:var(--on-dark-sub)">사람·테이블 검출 → 재석 판정 → 3색</text>
+    <text x="640" y="430" font-size="15" text-anchor="middle" style="fill:var(--on-dark-sub)">교내 PC 1대 · 자체 DB</text>
+
+    <!-- 외부 요소 -->
+    <g stroke-width="1.5" style="fill:var(--box);stroke:var(--box-line)">
+      <rect x="100" y="330" width="190" height="110" rx="6"/>
+      <rect x="950" y="255" width="160" height="100" rx="6"/>
+      <rect x="950" y="415" width="160" height="100" rx="6"/>
+      <rect x="1215" y="335" width="154" height="100" rx="6"/>
+    </g>
+    <g text-anchor="middle" style="fill:var(--ink)">
+      <text x="195" y="380" font-size="21" font-weight="700">학교 운영 담당자</text>
+      <text x="195" y="410" font-size="15" style="fill:var(--sub)">고객 · 관리 화면</text>
+      <text x="1030" y="298" font-size="21" font-weight="700">룸 카메라</text>
+      <text x="1030" y="326" font-size="15" style="fill:var(--sub)">룸마다 1대</text>
+      <text x="1030" y="458" font-size="21" font-weight="700">LED 표시등</text>
+      <text x="1030" y="486" font-size="15" style="fill:var(--sub)">문 위 · 룸마다 1개</text>
+      <text x="1292" y="378" font-size="21" font-weight="700">학생</text>
+      <text x="1292" y="406" font-size="15" style="fill:var(--sub)">스터디룸 이용자</text>
+    </g>
+
+    <!-- 관계 -->
+    <g fill="none" stroke-width="1.8" style="stroke:var(--teal)">
+      <path d="M290,360 L477,360" marker-end="url(#ah)"/>
+      <path d="M480,415 L293,415" marker-end="url(#ah)"/>
+      <path d="M950,325 L803,325" marker-end="url(#ah)"/>
+      <path d="M800,450 L947,450" marker-end="url(#ah)"/>
+      <path d="M1292,335 L1292,290 L1113,290" marker-end="url(#ah)"/>
+      <path d="M1110,480 L1292,480 L1292,438" marker-end="url(#ah)"/>
+    </g>
+    <g font-size="16" font-weight="500" text-anchor="middle" style="fill:var(--teal)">
+      <text x="385" y="346">감지 영역·기준 설정</text>
+      <text x="385" y="443">룸별 상태·이용 통계</text>
+      <text x="883" y="311" font-size="15">룸 사진 · 1초마다</text>
+      <text x="883" y="478" font-size="15">상태 색 · 바뀔 때</text>
+      <text x="1200" y="278">찍히면 재석</text>
+      <text x="1200" y="506">색 보고 선택</text>
+    </g>
+
+    <!-- 검토 후 제외한 안 -->
+    <line x1="87" y1="556" x2="1369" y2="556" stroke-width="1" style="stroke:var(--rule)"/>
+    <text x="87" y="588" font-size="16" font-weight="700" style="fill:var(--ink)">검토 후 제외한 안</text>
+    <g stroke-width="1.3" stroke-dasharray="5 4" style="fill:var(--chip);stroke:var(--box-line)">
+      <rect x="87" y="602" width="400" height="74" rx="6"/>
+      <rect x="528" y="602" width="400" height="74" rx="6"/>
+      <rect x="969" y="602" width="400" height="74" rx="6"/>
+    </g>
+    <g stroke-width="2.2" stroke-linecap="round" style="stroke:var(--red)">
+      <path d="M105,618 L115,628 M115,618 L105,628"/>
+      <path d="M546,618 L556,628 M556,618 L546,628"/>
+      <path d="M987,618 L997,628 M997,618 L987,628"/>
+    </g>
+    <g font-size="17" font-weight="700" style="fill:var(--ink)">
+      <text x="125" y="629">기존 CCTV 활용</text>
+      <text x="566" y="629">룸별 라즈베리파이</text>
+      <text x="1007" y="629">클라우드 GPU</text>
+    </g>
+    <g font-size="14" font-weight="700" text-anchor="end" style="fill:var(--red)">
+      <text x="473" y="629">정확도</text>
+      <text x="914" y="629">속도 · 비용 · 운영</text>
+      <text x="1355" y="629">비용 · 개인정보</text>
+    </g>
+    <g font-size="14.5" style="fill:var(--sub)">
+      <text x="105" y="658">룸 구분이 어렵고, 스터디룸엔 CCTV가 없음</text>
+      <text x="546" y="658">PC보다 크게 느림 · 14대 관리 · 초기 약 240만 원</text>
+      <text x="987" y="658">월 약 60만 원 · 영상이 학교 밖으로 나감</text>
+    </g>
+
+    <!-- 읽는 포인트 · 범례 · 가정 -->
+    <line x1="87" y1="700" x2="1369" y2="700" stroke-width="1" style="stroke:var(--rule)"/>
+    <text x="87" y="732" font-size="16" font-weight="700" style="fill:var(--teal)">읽는 포인트</text>
+    <text x="186" y="732" font-size="16" style="fill:var(--ink)">학생은 시스템에 아무것도 입력하지 않습니다. 카메라에 찍히고, 문 위 LED 색을 보고 고를 뿐입니다.</text>
+    <rect x="1088" y="720" width="13" height="13" style="fill:var(--dark)"/>
+    <text x="1108" y="732" font-size="14" style="fill:var(--sub)">개발 대상</text>
+    <rect x="1182" y="720" width="13" height="13" stroke-width="1.3" style="fill:var(--box);stroke:var(--box-line)"/>
+    <text x="1202" y="732" font-size="14" style="fill:var(--sub)">외부 요소</text>
+    <rect x="1276" y="720" width="13" height="13" stroke-width="1.3" stroke-dasharray="3 2" style="fill:var(--chip);stroke:var(--box-line)"/>
+    <text x="1296" y="732" font-size="14" style="fill:var(--sub)">제외한 안</text>
+    <text x="87" y="772" font-size="16" style="fill:var(--sub)">가정: 융합교육관 스터디룸 14개, 모든 장치는 교내망에 연결합니다. 시스템 내부(검출·판정·DB)는 한 상자로 묶었습니다.</text>
+  </svg>
+  </div>
+</div>

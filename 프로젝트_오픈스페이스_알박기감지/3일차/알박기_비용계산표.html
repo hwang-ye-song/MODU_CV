@@ -1,0 +1,341 @@
+<title>알박기 비용 계산표</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* 레이아웃: 위 = 결론 숫자 4개와 신호등, 가운데 = 입력(왼쪽)과 계산 결과(오른쪽), 아래 = 비교 안과 숨은 비용 */
+:root {
+  --bg: #f4f6f9; --surface: #ffffff; --ink: #18202c; --sub: #5d6778; --line: #d6dce6; --field: #f7f9fc;
+  --accent: #2557d6; --accent-soft: #e9effd; --good: #1f9d55; --bad: #d7263d;
+  --red: #e5384f; --yellow: #f2b01e; --green: #22b26a; --off: #3a404c; --housing: #1e232c;
+  --font: 'IBM Plex Sans KR', 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+  --mono: 'IBM Plex Mono', Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #10141b; --surface: #181d26; --ink: #e8ebf1; --sub: #9ba4b5; --line: #2e3543; --field: #1f2531;
+  --accent: #7ea2ff; --accent-soft: #1d2945; --good: #4cc38a; --bad: #ff6b7a;
+  --red: #ff5a6e; --yellow: #ffc845; --green: #3ddc8a; --off: #2b303a; --housing: #0b0e13; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #10141b; --surface: #181d26; --ink: #e8ebf1; --sub: #9ba4b5; --line: #2e3543; --field: #1f2531;
+  --accent: #7ea2ff; --accent-soft: #1d2945; --good: #4cc38a; --bad: #ff6b7a;
+  --red: #ff5a6e; --yellow: #ffc845; --green: #3ddc8a; --off: #2b303a; --housing: #0b0e13; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font); margin: 0; font-size: 15px; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: 20px; padding-block: 26px 48px; display: grid; gap: 18px; }
+.eyebrow { font-size: .78rem; letter-spacing: .08em; color: var(--sub); font-family: var(--mono); }
+h1 { font-size: 1.65rem; margin: 2px 0 6px; text-wrap: balance; }
+h2 { font-size: 1.08rem; margin: 0; }
+.lead { color: var(--sub); margin: 0; line-height: 1.6; max-width: 70ch; }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+.hero { display: grid; grid-template-columns: 1fr auto; gap: 18px; align-items: stretch; }
+.kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: grid; gap: 2px; min-width: 0; }
+.kpi b { font-family: var(--mono); font-size: 1.45rem; font-weight: 500; }
+.kpi span { color: var(--sub); font-size: .85rem; }
+.kpi small { color: var(--sub); font-size: .78rem; }
+.kpi.good b { color: var(--good); } .kpi.bad b { color: var(--bad); }
+
+.light-card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; display: grid; justify-items: center; gap: 8px; width: 270px; }
+.light-card figcaption { font-size: .82rem; color: var(--sub); text-align: center; line-height: 1.5; }
+.state { font-weight: 700; font-size: .95rem; min-height: 1.4em; }
+.legend-row { display: flex; gap: 10px; font-size: .78rem; color: var(--sub); flex-wrap: wrap; justify-content: center; }
+.legend-row i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 4px; vertical-align: 0; }
+
+.main { display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 18px; align-items: start; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: grid; gap: 14px; min-width: 0; align-content: start; }
+#t-alt td:last-child, #t-alt th:last-child { text-align: left; font-family: var(--font); white-space: normal; }
+#t-data td:first-child { white-space: nowrap; }
+fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 8px; }
+legend { font-size: .8rem; color: var(--sub); font-weight: 500; letter-spacing: .04em; margin-bottom: 4px; }
+.field { display: grid; grid-template-columns: 1fr 112px; gap: 8px; align-items: center; font-size: .88rem; }
+.field label { min-width: 0; }
+.field input { width: 100%; font: inherit; font-family: var(--mono); font-size: .88rem; text-align: right; padding: 5px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--field); color: var(--ink); }
+.field input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.unit { color: var(--sub); font-size: .76rem; }
+.reset { justify-self: start; font: inherit; font-size: .82rem; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--line); background: var(--field); color: var(--ink); cursor: pointer; }
+.reset:hover { border-color: var(--accent); }
+
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: .88rem; }
+th, td { padding: 7px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+th { color: var(--sub); font-weight: 500; font-size: .8rem; }
+td.r, th.r { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+td.r:last-child { white-space: nowrap; }
+tr.total td { font-weight: 700; border-top: 2px solid var(--line); }
+tr.pick td { background: var(--accent-soft); }
+.calc { color: var(--sub); font-size: .78rem; font-family: var(--mono); }
+
+.bars { display: grid; gap: 8px; }
+.bar { display: grid; grid-template-columns: 120px 1fr 92px; gap: 10px; align-items: center; font-size: .86rem; }
+.track { height: 14px; background: var(--field); border-radius: 4px; position: relative; overflow: hidden; }
+.fill { position: absolute; inset: 0 auto 0 0; border-radius: 4px; background: var(--accent); }
+.fill.alt { background: var(--sub); }
+.sub-line { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--good); }
+.bar .v { text-align: right; font-family: var(--mono); }
+.note { font-size: .82rem; color: var(--sub); line-height: 1.55; }
+
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; }
+ul.plain { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: .88rem; line-height: 1.5; }
+@media (max-width: 900px) { .main { grid-template-columns: 1fr; } .hero { grid-template-columns: 1fr; } .light-card { width: auto; } }
+@media (max-width: 480px) { .kpis { grid-template-columns: 1fr; } .bar { grid-template-columns: 90px 1fr 80px; } }
+@media (prefers-reduced-motion: reduce) { .lamp { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">스터디룸 알박기 감지 · B2B 도입 비용</div>
+    <h1>알박기 비용 계산표</h1>
+    <p class="lead">융합교육관 스터디룸에 도입할 때 드는 초기 비용과 매달 운영 비용입니다. 왼쪽 가정값을 바꾸면 모든 숫자가 바로 다시 계산됩니다. 판정과 DB는 교내 PC 한 대(라이젠 5 5600급 CPU, GTX 1070급 GPU, 램 16GB)에서 처리합니다.</p>
+  </header>
+
+  <section class="hero" aria-label="요약">
+    <div class="kpis">
+      <div class="kpi"><b id="k-init">-</b><span>초기 도입 비용</span><small id="k-init-sub"></small></div>
+      <div class="kpi"><b id="k-month">-</b><span>월 운영비 (교내 서버)</span><small id="k-month-sub"></small></div>
+      <div class="kpi" id="k-margin-box"><b id="k-margin">-</b><span>구독료 대비 월 차액</span><small id="k-margin-sub"></small></div>
+      <div class="kpi"><b id="k-payback">-</b><span>초기 비용 회수 기간</span><small>월 차액으로 초기 비용을 갚는 데 걸리는 시간</small></div>
+    </div>
+    <figure class="light-card" style="margin:0">
+      <svg viewBox="0 0 220 270" width="210" role="img" aria-label="스터디룸 문 위 벽에 잘 보이게 가로로 붙인 LED 신호등. 빨강 사용중, 노랑 30분 미만 자리 비움, 초록 30분 이상 비어 사용 가능">
+        <!-- 벽과 바닥 -->
+        <rect x="0" y="0" width="220" height="256" style="fill:var(--field)"/>
+        <line x1="0" y1="256" x2="220" y2="256" style="stroke:var(--line)" stroke-width="2"/>
+        <!-- 유리문 -->
+        <rect x="58" y="84" width="104" height="172" rx="3" style="fill:var(--surface);stroke:var(--sub)" stroke-width="3"/>
+        <rect x="66" y="92" width="88" height="156" style="fill:var(--accent-soft)" opacity=".7"/>
+        <line x1="80" y1="106" x2="100" y2="86" style="stroke:var(--surface)" stroke-width="4" opacity=".6"/>
+        <rect x="140" y="160" width="5" height="34" rx="2" style="fill:var(--sub)"/>
+        <text x="110" y="124" font-size="11" text-anchor="middle" font-family="IBM Plex Mono, Consolas, monospace" style="fill:var(--sub)">410-7</text>
+        <!-- 가로형 LED 신호등 (문 위 벽, 가운데) -->
+        <rect x="77" y="24" width="66" height="22" rx="6" style="fill:var(--housing)"/>
+        <circle class="lamp" id="lamp-red" cx="91" cy="35" r="6.5" style="fill:var(--off)"/>
+        <circle class="lamp" id="lamp-yellow" cx="110" cy="35" r="6.5" style="fill:var(--off)"/>
+        <circle class="lamp" id="lamp-green" cx="129" cy="35" r="6.5" style="fill:var(--off)"/>
+        <!-- 크기 표시 -->
+        <line x1="77" y1="56" x2="143" y2="56" style="stroke:var(--sub)" stroke-width="1"/>
+        <line x1="77" y1="52" x2="77" y2="60" style="stroke:var(--sub)" stroke-width="1"/>
+        <line x1="143" y1="52" x2="143" y2="60" style="stroke:var(--sub)" stroke-width="1"/>
+        <text x="110" y="72" font-size="9" text-anchor="middle" style="fill:var(--sub)">약 10cm</text>
+      </svg>
+      <div class="state" id="light-state" aria-live="polite">사용중</div>
+      <div class="legend-row"><span><i style="background:var(--red)"></i>사용중</span><span><i style="background:var(--yellow)"></i>30분 미만</span><span><i style="background:var(--green)"></i>사용 가능</span></div>
+      <figcaption>룸 문 위(또는 문 자체)에 멀리서도 잘 보이게 가로로 붙이는 LED 표시등 (그림 예시). 룸마다 1개이며, 단가는 왼쪽 "신호등"에서 바꿀 수 있습니다.</figcaption>
+    </figure>
+  </section>
+
+  <section class="main">
+    <form class="panel" id="inputs" aria-label="가정값" onsubmit="return false">
+      <h2>가정값</h2>
+      <fieldset><legend>운영 조건</legend>
+        <div class="field"><label for="rooms">룸 수 <span class="unit">개</span></label><input id="rooms" type="number" min="1" step="1"></div>
+        <div class="field"><label for="interval">판정 간격 <span class="unit">초 / 룸당 1장</span></label><input id="interval" type="number" min="0.5" step="0.5"></div>
+        <div class="field"><label for="hours">하루 운영 시간 <span class="unit">시간</span></label><input id="hours" type="number" min="1" max="24" step="1"></div>
+        <div class="field"><label for="frameKB">프레임 1장 크기 <span class="unit">KB</span></label><input id="frameKB" type="number" min="1" step="1"></div>
+        <div class="field"><label for="changes">룸 상태가 바뀌는 횟수 <span class="unit">회/일</span></label><input id="changes" type="number" min="0" step="1"></div>
+        <div class="field"><label for="fx">환율 <span class="unit">원/달러</span></label><input id="fx" type="number" min="1" step="10"></div>
+        <div class="field"><label for="price">구독료 <span class="unit">원/월</span></label><input id="price" type="number" min="0" step="10000"></div>
+      </fieldset>
+      <fieldset><legend>장비 단가 (원)</legend>
+        <div class="field"><label for="camUnit">카메라 <span class="unit">대당 · Tapo C210</span></label><input id="camUnit" type="number" min="0" step="10000"></div>
+        <div class="field"><label for="install">카메라 고정 부자재 <span class="unit">대당</span></label><input id="install" type="number" min="0" step="10000"></div>
+        <div class="field"><label for="switchCost">PoE 스위치 <span class="unit">유선 카메라일 때만</span></label><input id="switchCost" type="number" min="0" step="10000"></div>
+        <div class="field"><label for="lightUnit">신호등 <span class="unit">개당</span></label><input id="lightUnit" type="number" min="0" step="5000"></div>
+        <div class="field"><label for="serverPC">판정 서버 PC <span class="unit">권장 사양 PC</span></label><input id="serverPC" type="number" min="0" step="50000"></div>
+        <div class="field"><label for="monitor">1층 현황판 <span class="unit">고도화 단계 · 0이면 제외</span></label><input id="monitor" type="number" min="0" step="10000"></div>
+        <div class="field"><label for="setup">전기 공사 <span class="unit">전체</span></label><input id="setup" type="number" min="0" step="50000"></div>
+      </fieldset>
+      <fieldset><legend>전기</legend>
+        <div class="field"><label for="kwh">전기요금 <span class="unit">원/kWh</span></label><input id="kwh" type="number" min="0" step="5"></div>
+        <div class="field"><label for="serverW">서버 소비 전력 <span class="unit">W</span></label><input id="serverW" type="number" min="0" step="10"></div>
+        <div class="field"><label for="camW">카메라 <span class="unit">W/대</span></label><input id="camW" type="number" min="0" step="0.5"></div>
+        <div class="field"><label for="switchW">PoE 스위치 <span class="unit">W</span></label><input id="switchW" type="number" min="0" step="1"></div>
+        <div class="field"><label for="lightW">신호등 <span class="unit">W/개</span></label><input id="lightW" type="number" min="0" step="0.5"></div>
+      </fieldset>
+      <fieldset><legend>유지보수</legend>
+        <div class="field"><label for="maintH">관리 시간 <span class="unit">시간/월</span></label><input id="maintH" type="number" min="0" step="1"></div>
+        <div class="field"><label for="wage">시급 <span class="unit">원</span></label><input id="wage" type="number" min="0" step="10"></div>
+        <div class="field"><label for="fail">카메라 고장 <span class="unit">대/년</span></label><input id="fail" type="number" min="0" step="1"></div>
+      </fieldset>
+      <fieldset><legend>비교 안 (달러)</legend>
+        <div class="field"><label for="gpuH">클라우드 GPU <span class="unit">$/시간</span></label><input id="gpuH" type="number" min="0" step="0.01"></div>
+        <div class="field"><label for="cloudDB">클라우드 DB <span class="unit">$/월</span></label><input id="cloudDB" type="number" min="0" step="1"></div>
+        <div class="field"><label for="piUnit">라즈베리파이 5 <span class="unit">$/대</span></label><input id="piUnit" type="number" min="0" step="1"></div>
+        <div class="field"><label for="piCam">카메라 모듈 3 <span class="unit">$/대</span></label><input id="piCam" type="number" min="0" step="1"></div>
+      </fieldset>
+      <button class="reset" type="button" id="reset">기본값으로 되돌리기</button>
+    </form>
+
+    <div style="display:grid; gap:18px; min-width:0">
+      <div class="panel">
+        <h2>초기 도입 비용</h2>
+        <div class="table-wrap"><table id="t-init"></table></div>
+      </div>
+      <div class="panel">
+        <h2>월 운영 비용 비교</h2>
+        <div class="table-wrap"><table id="t-month"></table></div>
+        <div class="bars" id="bars" role="img" aria-label="방식별 월 운영비와 구독료 비교"></div>
+        <p class="note">초록 선은 구독료입니다. 막대가 선 왼쪽에 있어야 구독료로 운영비를 감당할 수 있습니다.</p>
+      </div>
+      <div class="grid2">
+        <div class="panel">
+          <h2>전기 사용량</h2>
+          <div class="table-wrap"><table id="t-power"></table></div>
+        </div>
+        <div class="panel">
+          <h2>데이터 흐름과 DB</h2>
+          <div class="table-wrap"><table id="t-data"></table></div>
+          <p class="note">DB는 판정 서버 PC 안에 둡니다. 상태가 바뀐 순간과 이용률 통계만 저장하고 스냅샷은 1일 뒤 지우므로, 데이터가 학교 밖으로 나가지 않고 클라우드 DB 비용도 들지 않습니다. 하루 한 번 학교 NAS나 외장 디스크로 백업합니다.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="grid2">
+    <div class="panel">
+      <h2>검토 후 제외한 안</h2>
+      <div class="table-wrap"><table id="t-alt"></table></div>
+    </div>
+    <div class="panel">
+      <h2>숨은 비용</h2>
+      <ul class="plain">
+        <li><b>개인정보 대응</b>: 영상정보처리기기 안내판, 학교 개인정보 담당 검토, 학생 공지</li>
+        <li><b>클레임 처리</b>: "30분 안 됐는데 짐을 뺐다"는 항의에 판정 기록을 확인하는 시간</li>
+        <li><b>행정 협의</b>: 시설팀과 설치 위치, 전원, 네트워크 협의</li>
+        <li><b>보안 책임</b>: 교내망에 장비를 연결할 때의 책임 범위</li>
+        <li><b>재학습</b>: 책상 모양이 바뀌거나 다른 공간으로 넓힐 때</li>
+      </ul>
+      <p class="note">판정 서버 권장 사양: CPU 라이젠 5 5600급(6코어 12스레드), GPU GTX 1070급(8GB), 램 16GB, SSD 250GB. 룸 14개 × 1초 1장 = 초당 14장을 처리하면 되고, 모델이 18MB로 작아 판정은 GPU가 여유 있게 맡습니다. CPU는 카메라 14대의 영상을 받아 푸는 일을 맡으므로, 과부하를 막기 위해 4코어급 대신 6코어 12스레드급으로 정했습니다. 실제 처리 속도는 룸 14개 병렬 테스트로 확인합니다. 가격 50만 원은 같은 급 PC 기준 추정입니다.</p>
+      <p class="note">기본값의 장비 단가와 전기요금은 추정입니다. 실제 견적, 학교 전기요금 고지서, 측정한 프레임 크기와 소비 전력으로 바꿔 넣으세요.</p>
+    </div>
+  </section>
+</div>
+
+<script>
+const DEFAULTS = { rooms: 14, interval: 1, hours: 24, frameKB: 80, changes: 50, fx: 1350, price: 200000,
+  camUnit: 45900, install: 10000, switchCost: 0, lightUnit: 35000, serverPC: 500000, monitor: 0, setup: 300000,
+  kwh: 150, serverW: 200, camW: 5, switchW: 20, lightW: 1,
+  maintH: 4, wage: 10320, fail: 2,
+  gpuH: 0.526, cloudDB: 15, piUnit: 80, piCam: 25 };
+const KEY = 'aldbakgi-cost-v6';
+const $ = (id) => document.getElementById(id);
+const won = (n) => (Math.round(n / 1000) * 1000).toLocaleString('ko-KR') + '원';
+const man = (n) => { const v = n / 10000; return (v >= 100 ? Math.round(v) : Math.round(v * 10) / 10).toLocaleString('ko-KR') + '만 원'; };
+const fmt = (n, d = 1) => Number(n.toFixed(d)).toLocaleString('ko-KR');
+
+function load() {
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) { saved = {}; }
+  for (const k in DEFAULTS) $(k).value = (k in saved) ? saved[k] : DEFAULTS[k];
+}
+function read() { const v = {}; for (const k in DEFAULTS) { const x = parseFloat($(k).value); v[k] = isFinite(x) ? x : DEFAULTS[k]; } return v; }
+function save(v) { try { localStorage.setItem(KEY, JSON.stringify(v)); } catch (e) {} }
+
+function rows(t, head, body) {
+  t.innerHTML = '<thead><tr>' + head.map((h, i) => `<th class="${i ? 'r' : ''}">${h}</th>`).join('') + '</tr></thead><tbody>' +
+    body.map(r => `<tr class="${r.cls || ''}">` + r.c.map((c, i) => `<td class="${i ? 'r' : ''}">${c}</td>`).join('') + '</tr>').join('') + '</tbody>';
+}
+
+function calc() {
+  const v = read(); save(v);
+  const days = 30, hm = v.hours * days;
+  // 초기 비용
+  const init = [
+    ['룸 카메라 (Tapo C210, RTSP)', `${v.rooms}대 × ${won(v.camUnit)}`, v.rooms * v.camUnit],
+    ['카메라 고정', `${v.rooms}곳 × ${won(v.install)} (거치대·연장선)`, v.rooms * v.install],
+    ['PoE 스위치', v.switchCost ? '전체' : '와이파이 카메라라 불필요', v.switchCost],
+    ['문 앞 신호등', `${v.rooms}개 × ${won(v.lightUnit)}`, v.rooms * v.lightUnit],
+    ['판정 서버 PC (DB 포함)', '라이젠 5 5600급 · GTX 1070급 · 램 16GB · SSD 250GB', v.serverPC],
+    ['1층 현황판 모니터', v.monitor ? '1대' : '고도화 단계에서 추가', v.monitor],
+    ['전기 공사', '전체 (신호등·카메라 전원)', v.setup],
+  ];
+  const initTotal = init.reduce((s, r) => s + r[2], 0);
+  rows($('t-init'), ['항목', '계산', '금액'], [
+    ...init.map(r => ({ c: [r[0], `<span class="calc">${r[1]}</span>`, won(r[2])] })),
+    { cls: 'total', c: ['합계', '', won(initTotal)] }]);
+
+  // 전기
+  const pw = [
+    ['판정 서버 PC', v.serverW],
+    [`카메라 ${v.rooms}대`, v.camW * v.rooms],
+    ['PoE 스위치', v.switchW],
+    [`신호등 ${v.rooms}개`, v.lightW * v.rooms],
+  ];
+  const kwhAll = pw.reduce((s, r) => s + r[1], 0) * hm / 1000;
+  const kwhNoServer = (pw.reduce((s, r) => s + r[1], 0) - v.serverW) * hm / 1000;
+  const elec = kwhAll * v.kwh, elecNoServer = kwhNoServer * v.kwh;
+  rows($('t-power'), ['장비', '전력', '월 사용량'], [
+    ...pw.map(r => ({ c: [r[0], fmt(r[1], 1) + 'W', fmt(r[1] * hm / 1000, 0) + 'kWh'] })),
+    { cls: 'total', c: ['합계', '', `${fmt(kwhAll, 0)}kWh · ${won(elec)}`] }]);
+
+  // 데이터
+  const fps = v.rooms / v.interval;
+  const mbps = fps * v.frameKB * 8 / 1000;
+  const tb = fps * v.frameKB * 1e3 * 3600 * hm / 1e12;
+  const chMB = v.changes * v.rooms * 100 * days / 1e6;
+  const statMB = v.rooms * (v.hours * 6) * 100 * days / 1e6;
+  const snapMB = v.changes * v.rooms * 100 / 1000;
+  const allFrameGB = fps * 3600 * hm * 100 / 1e9;
+  rows($('t-data'), ['구간', '계산', '양'], [
+    { c: ['카메라 → 서버', `초당 ${fmt(fps)}장 × ${v.frameKB}KB`, `${fmt(mbps)}Mbps · 월 ${fmt(tb, 2)}TB`] },
+    { c: ['상태 변화 기록', `하루 ${v.changes}회 × ${v.rooms}룸`, `월 ${fmt(chMB, 1)}MB`] },
+    { c: ['10분 단위 이용률 통계', `하루 ${v.hours * 6}행 × ${v.rooms}룸`, `월 ${fmt(statMB, 1)}MB`] },
+    { c: ['모자이크 스냅샷', '1일 뒤 삭제', `항상 약 ${fmt(snapMB, 0)}MB`] },
+    { c: ['(참고) 매 프레임 저장 시', '필요 없음', `월 ${fmt(allFrameGB, 1)}GB`] },
+  ]);
+
+  // 월 운영비
+  const maint = v.maintH * v.wage, spare = v.camUnit * v.fail / 12;
+  const gpu = v.gpuH * 730 * v.fx, cdb = v.cloudDB * v.fx;
+  const onprem = elec + maint + spare;
+  const cloud = gpu + elecNoServer + cdb + maint + spare;
+  rows($('t-month'), ['항목', '교내 서버 (선택안)', '클라우드 GPU 서버'], [
+    { c: ['서버', `0원<br><span class="calc">PC 값은 초기 비용에 포함</span>`, `${won(gpu)}<br><span class="calc">$${v.gpuH} × 730시간 × ${v.fx}원</span>`] },
+    { c: ['전기료', won(elec), `${won(elecNoServer)}<br><span class="calc">서버 제외</span>`] },
+    { c: ['DB', '0원<br><span class="calc">서버 PC 안</span>', won(cdb)] },
+    { c: ['데이터 전송', '0원<br><span class="calc">교내망</span>', `0원<br><span class="calc">업로드 ${fmt(mbps)}Mbps 상시</span>`] },
+    { c: ['유지보수 인력', won(maint), won(maint)] },
+    { c: ['부품 예비비', won(spare), won(spare)] },
+    { cls: 'total pick', c: ['월 합계', won(onprem), won(cloud)] }]);
+
+  const max = Math.max(onprem, cloud, v.price) * 1.1;
+  const line = v.price / max * 100;
+  $('bars').innerHTML = [['교내 서버', onprem, ''], ['클라우드 GPU', cloud, 'alt']].map(([n, x, c]) =>
+    `<div class="bar"><span>${n}</span><span class="track"><span class="fill ${c}" style="width:${x / max * 100}%"></span><span class="sub-line" style="left:${line}%"></span></span><span class="v">${man(x)}</span></div>`).join('');
+
+  // 비교 안
+  const piInit = v.rooms * (v.piUnit + v.piCam) * v.fx + v.rooms * 30000;
+  rows($('t-alt'), ['안', '추정', '제외한 이유'], [
+    { c: ['라즈베리파이를 룸마다', `${won(piInit)}<br><span class="calc">(${'$'}${v.piUnit}+${'$'}${v.piCam})×${v.fx}원+3만 원, ${v.rooms}대</span>`, '<span style="white-space:normal">서버 방식보다 느리고, 고장 나면 현장 교체, SD카드 수명 문제</span>'] },
+    { c: ['기존 CCTV 재활용', '장비 0원', '<span style="white-space:normal">스터디룸에 CCTV가 없고, 한 화면에 여러 룸이 겹쳐 구분이 어려움</span>'] },
+    { c: ['클라우드 GPU 서버', `월 ${man(cloud)}`, '<span style="white-space:normal">구독료보다 운영비가 큼. 모델이 작아 교내 PC로 충분</span>'] },
+  ]);
+
+  // 요약
+  $('k-init').textContent = man(initTotal);
+  $('k-init-sub').textContent = `룸 ${v.rooms}개 기준, 룸당 ${man(initTotal / v.rooms)}`;
+  $('k-month').textContent = man(onprem);
+  $('k-month-sub').textContent = `전기세 ${man(elec)} + 점검 ${man(maint)} + 고장 대비 ${man(spare)} · 클라우드면 ${man(cloud)}`;
+  const margin = v.price - onprem;
+  $('k-margin').textContent = (margin >= 0 ? '+' : '') + man(margin);
+  $('k-margin-sub').textContent = `구독료 ${man(v.price)} − 운영비`;
+  $('k-margin-box').className = 'kpi ' + (margin >= 0 ? 'good' : 'bad');
+  $('k-payback').textContent = margin > 0 ? `${fmt(initTotal / margin, 1)}개월` : '회수 불가';
+}
+
+// 신호등 애니메이션
+const STATES = [['red', '사용중'], ['yellow', '자리 비움 · 30분 미만'], ['green', '사용 가능 · 30분 이상']];
+let si = 0;
+function light() {
+  STATES.forEach(([c], i) => { $('lamp-' + c).style.fill = i === si ? `var(--${c})` : 'var(--off)'; });
+  $('light-state').textContent = STATES[si][1];
+  $('light-state').style.color = `var(--${STATES[si][0]})`;
+}
+const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+light();
+if (!reduce) setInterval(() => { si = (si + 1) % 3; light(); }, 1800);
+
+load(); calc();
+$('inputs').addEventListener('input', calc);
+$('reset').addEventListener('click', () => { for (const k in DEFAULTS) $(k).value = DEFAULTS[k]; calc(); });
+</script>
