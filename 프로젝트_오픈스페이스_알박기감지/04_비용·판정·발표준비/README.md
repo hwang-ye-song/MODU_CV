@@ -159,7 +159,7 @@ GPU 연산 성능(TFLOPS) 비율로 환산했다. RTX 5060 노트북은 약 15 T
 - YOLO26s 파인튜닝 전 21.0ms와 후 18.1ms의 차이는 측정 오차다. 구조가 같아서 속도가 달라질 이유가 없다.
 - 테이블 칸의 '파인튜닝 전' 값 두 개는 채점 방식과 시험 영상이 다르다. 26s의 2%는 정답 박스와의 겹침(IoU)으로 채점한 값(천장 카메라 1차.mp4)이고, 26n의 3%는 테이블을 잡았는지만 본 값(웹캠 영상)이다.
 - 2일차 README의 GPU 시간(예: YOLO26s v2 29ms)은 다른 날 잰 값이라 몇 ms 차이가 난다. 어느 값이든 기준 71ms보다 훨씬 빠르다.
-- 검출률과 파라미터 원자료는 2일차 폴더에 있다: [resource.json](../2일차/YOLO비교/resource.json), [results.json](../2일차/YOLO비교/results.json), [sleep_results.json](../2일차/YOLO비교/sleep_results.json), [eval_results.json](../2일차/파인튜닝/eval_results.json)
+- 검출률과 파라미터 원자료는 03_모델비교·파인튜닝 폴더에 있다: [resource.json](../03_모델비교·파인튜닝/YOLO비교/resource.json), [results.json](../03_모델비교·파인튜닝/YOLO비교/results.json), [sleep_results.json](../03_모델비교·파인튜닝/YOLO비교/sleep_results.json), [eval_results.json](../03_모델비교·파인튜닝/파인튜닝/eval_results.json)
 
 ## 6. 라즈베리파이 검토 결과
 
