@@ -10,7 +10,7 @@
 | 4 | [04_EfficientDet_객체탐지](04_EfficientDet_객체탐지) | 2026-10-02 ~ 10-04 | EfficientDet 실습 코드 정리와 코드 리뷰 | [EfficientDet-_CV](https://github.com/hwang-ye-song/EfficientDet-_CV) |
 | 6 | [06_이상탐지_PaDiM](06_이상탐지_PaDiM) | 2026-10-12 ~ 10-13 | 제조업 실시간 이상 탐지 (VisA, PaDiM·AutoEncoder·One-Class SVM, Gradio) | [ch_6](https://github.com/hwang-ye-song/ch_6) |
 | 8 | [08_생성AI_결함데이터생성](08_생성AI_결함데이터생성) | 2026-10-13 ~ 10-16 | 생성형 AI로 제조 결함 데이터 만들기: 8-1 Stable Diffusion(Text-to-Image, Inpainting), 8-2 AnomalyAny, 6주차 PaDiM으로 생성 이미지 채점 | - |
-| - | [프로젝트_오픈스페이스_알박기감지](프로젝트_오픈스페이스_알박기감지) | 2026-10-13 ~ 10-22 | 한양대 ERICA 융합교육관 스터디룸 알박기 감지 시스템 (기획, 회의 보고서, 모델 비교·파인튜닝, 비용·서버 사양, 최종 발표 자료) | - |
+| - | [프로젝트_오픈스페이스_알박기감지](프로젝트_오픈스페이스_알박기감지) | 2026-10-13 ~ 10-24 | 한양대 ERICA 융합교육관 스터디룸 알박기 감지 시스템 (기획서, 1·2차 회의 보고서, 모델 비교·파인튜닝, 비용·서버 사양, 최종 보고서·발표 자료, 통합 실행 프로그램, IC-PBL 자기성찰지) | - |
 | - | [SlowPaper](SlowPaper) | 2026-10-16 | SlowPaper: CLIP 논문 다시 읽기 회고 PDF (다섯 가지 질문과 KPT 회고) | - |
 
 ## 참고
