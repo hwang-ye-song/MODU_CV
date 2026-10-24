@@ -7,7 +7,7 @@
 > - **[추가]** = 프로젝트를 하면서 **새로 넣은 것**
 > - **[변경]** ~~이전~~ → 최종 = **바꾼 것**
 >
-> 팀 저장소 [10_Project/1주차/PRFAQ.md](https://github.com/gosu1/ERICA_X_MODULABS_CV/blob/main/10_Project/1주차/PRFAQ.md)와 같은 내용입니다. 처음 기획 원문은 팀 저장소의 Git 기록(10/13 커밋)에서 볼 수 있습니다. 같은 폴더의 PDF(문제분석지, PR, FAQ)는 처음 쓴 그대로 두었습니다.
+> 팀 저장소 [10_Project/기획서/PRFAQ.md](https://github.com/gosu1/ERICA_X_MODULABS_CV/blob/main/10_Project/기획서/PRFAQ.md)와 같은 내용입니다. 처음 기획 원문은 팀 저장소의 Git 기록(10/13 커밋)에서 볼 수 있습니다. 같은 폴더의 PDF(문제분석지, PR, FAQ)는 처음 쓴 그대로 두었습니다.
 
 ## 바뀐 것 한눈에 보기
 
